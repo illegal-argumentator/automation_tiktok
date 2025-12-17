@@ -35,6 +35,9 @@ public class NstBrowserClient {
     @Value("${nst-browser.url}")
     private String NST_API;
 
+    @Value("${nst-browser.group-id}")
+    private String NST_BROWSER_GROUP_ID;
+
     public CreateProfileResponse createProfile(String profileName, Proxy proxy) {
         try {
             CreateProfileRequest createProfileRequest = buildCreateProfileRequest(profileName, proxy);
@@ -45,7 +48,7 @@ public class NstBrowserClient {
             RequestBody body = RequestBody.create(mediaType, json);
 
             Request request = new Request.Builder()
-                    .url(NST_API + "/profiles")
+                    .url(NST_API + "/profiles?groupId=%s".formatted(NST_BROWSER_GROUP_ID))
                     .method("POST", body)
                     .addHeader("Content-Type", "application/json")
                     .addHeader("x-api-key", NST_BROWSER_API_KEY)
