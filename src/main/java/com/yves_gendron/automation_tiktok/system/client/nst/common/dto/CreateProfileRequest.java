@@ -13,6 +13,7 @@ public class CreateProfileRequest {
     private Fingerprint fingerprint;
     private List<String> startupUrls;
     private Map<String, Object> args;
+    private String groupId;
 
     @Data
     public static class Fingerprint {

@@ -7,7 +7,7 @@ import java.util.List;
 
 public class CreateProfileRequestBuilder {
 
-    public static CreateProfileRequest buildCreateProfileRequest(String profileName, Proxy proxy) {
+    public static CreateProfileRequest buildCreateProfileRequest(String profileName, Proxy proxy, String groupId) {
         CreateProfileRequest request = new CreateProfileRequest();
         request.setName(profileName);
         request.setPlatform("Windows");
@@ -19,6 +19,7 @@ public class CreateProfileRequestBuilder {
                         proxy.getPort()
                 )
         );
+        request.setGroupId(groupId);
 
         CreateProfileRequest.Fingerprint fingerprint = new CreateProfileRequest.Fingerprint();
 

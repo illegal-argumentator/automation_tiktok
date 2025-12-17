@@ -40,7 +40,7 @@ public class NstBrowserClient {
 
     public CreateProfileResponse createProfile(String profileName, Proxy proxy) {
         try {
-            CreateProfileRequest createProfileRequest = buildCreateProfileRequest(profileName, proxy);
+            CreateProfileRequest createProfileRequest = buildCreateProfileRequest(profileName, proxy, NST_BROWSER_GROUP_ID);
 
             String json = objectMapper.writeValueAsString(createProfileRequest);
 
@@ -48,7 +48,7 @@ public class NstBrowserClient {
             RequestBody body = RequestBody.create(mediaType, json);
 
             Request request = new Request.Builder()
-                    .url(NST_API + "/profiles?groupId=%s".formatted(NST_BROWSER_GROUP_ID))
+                    .url(NST_API + "/profiles")
                     .method("POST", body)
                     .addHeader("Content-Type", "application/json")
                     .addHeader("x-api-key", NST_BROWSER_API_KEY)
