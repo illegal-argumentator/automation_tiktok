@@ -1,0 +1,107 @@
+package com.yves_gendron.automation_tiktok.common.helper;
+
+import com.yves_gendron.automation_tiktok.config.AppProps;
+import com.yves_gendron.automation_tiktok.domain.proxy.common.exception.ProxyNotAvailableException;
+import com.yves_gendron.automation_tiktok.domain.proxy.model.Proxy;
+import com.yves_gendron.automation_tiktok.domain.proxy.service.ProxyService;
+import com.yves_gendron.automation_tiktok.domain.proxy.service.ProxyVerifier;
+import com.yves_gendron.automation_tiktok.domain.proxy.web.dto.UpdateProxyRequest;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.*;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class ProxyHelper {
+
+    private final ProxyVerifier proxyVerifier;
+
+    private final AppProps appProps;
+
+    private final ProxyService proxyService;
+
+    private final OkHttpClient okHttpClient;
+
+    public List<Proxy> getAccessibleProxiesWithLimit(List<Proxy> proxies, int limit) {
+        List<Proxy> accessibleProxies = new ArrayList<>();
+
+        for (Proxy proxy : proxies) {
+            if (accessibleProxies.size() == limit) {
+                break;
+            }
+
+            boolean verifiedProxy = updateProxyVerification(proxy);
+            if (!verifiedProxy) {
+                continue;
+            }
+            if(!hasRotated(proxy)) {
+                rotateProxy(proxy.getRotationData().getAutoRotationLink());
+                updateProxyRotation(proxy);
+            }
+
+            accessibleProxies.add(proxy);
+        }
+
+        if (retrieveMaximumProxyUsage(accessibleProxies) < limit) {
+            throw new ProxyNotAvailableException("Not enough accessible proxies");
+        }
+
+        return accessibleProxies;
+    }
+
+    private int retrieveMaximumProxyUsage(List<Proxy> proxies) {
+        return proxies.stream()
+                .mapToInt(proxy -> appProps.getAccountsPerProxy() - proxy.getAccountsLinked())
+                .sum();
+    }
+
+    private boolean hasRotated(Proxy proxy) {
+        long timePassedFromLastRotation = Instant.now().getEpochSecond() - proxy.getRotationData().getLastRotation().getEpochSecond();
+        return timePassedFromLastRotation >= proxy.getRotationData().getAutoRotateInterval();
+    }
+
+    private boolean updateProxyVerification(Proxy proxy) {
+        boolean verifiedProxy = proxyVerifier.verifyProxy(proxy);
+
+        if (!verifiedProxy) {
+            if (proxy.isVerified()) {
+                proxyService.update(proxy.getId(), UpdateProxyRequest.builder().verified(false).build());
+            }
+        } else {
+            if (!proxy.isVerified()) {
+                proxyService.update(proxy.getId(), UpdateProxyRequest.builder().verified(true).build());
+            }
+        }
+
+        return verifiedProxy;
+    }
+
+    private void updateProxyRotation(Proxy proxy) {
+        UpdateProxyRequest updateProxyRequest = UpdateProxyRequest.builder()
+                .verified(true)
+                .accountsLinked(0)
+                .lastRotation(Instant.now())
+                .build();
+
+        proxyService.update(proxy.getId(), updateProxyRequest);
+    }
+
+    private void rotateProxy(String rotationLink) {
+            Request request = new Request.Builder()
+                    .get()
+                    .url(rotationLink)
+                    .build();
+        try (Response ignored = okHttpClient.newCall(request).execute()) {
+
+        } catch (IOException e) {
+            log.error("NstBrowserException: {}", e.getMessage());
+        }
+    }
+}

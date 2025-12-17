@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+
+APP_DIR="/opt/introlab/project-name/automation-tiktok"
+DOCKER_COMPOSE_FILE="$APP_DIR/docker/docker-compose.yaml"
+
+cd "$APP_DIR"
+
+echo "Pulling latest changes..."
+git pull
+
+echo "Stopping containers..."
+docker-compose -f "$DOCKER_COMPOSE_FILE" down
+
+echo "Building and starting containers..."
+docker-compose -f "$DOCKER_COMPOSE_FILE" up --build
+
+echo "Streaming logs..."
+docker-compose -f "$DOCKER_COMPOSE_FILE" logs -f
