@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-APP_DIR="/opt/introlab/project-name/automation-tiktok"
+
+APP_DIR="/opt/introlab/automation_tiktok"
 DOCKER_COMPOSE_FILE="$APP_DIR/docker/docker-compose.yaml"
 
 cd "$APP_DIR"
