@@ -16,6 +16,9 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_INTERNAL_PORT}
+
       NST_API_URL: ${NST_API_URL}
       NST_BROWSER_API_KEY: ${NST_TOKEN}
     depends_on:
@@ -31,7 +34,7 @@ services:
     networks:
       - yves-gendron-prod
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "${POSTGRES_EXTERNAL_PORT}:5432"
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -41,14 +44,17 @@ services:
 
   nstbrowserless_00:
     image: nstbrowser/browserless:140-202511181200.v2
+    container_name: nstbrowserless-yves-gendron
+    restart: unless-stopped
+    networks:
+      - yves-gendron-prod
     environment:
       TOKEN: ${NST_TOKEN}
-      VNC_PORT:
-      VNC_PASSWORD:
+      VNC_PORT: ${VNC_PORT}
+      VNC_PASSWORD: ${VNC_PASSWORD}
     ports:
       - "${NST_PORT}:8848"
       - "${VNC_PORT}:6900"
-    restart: unless-stopped
 
 volumes:
   pg_yves_gendron_data:
