@@ -85,7 +85,7 @@ public class ProxyHelper {
                     .build();
         try (Response ignored = okHttpClient.newCall(request).execute()) {
             String PROXY_ID_PARAMETER = "uuid";
-            log.info("Rotating proxy: {}.", rotationLink.substring(rotationLink.indexOf(PROXY_ID_PARAMETER) + 1));
+            log.info("Rotating proxy: {}.", rotationLink.substring(rotationLink.indexOf(PROXY_ID_PARAMETER) + PROXY_ID_PARAMETER.length()));
         } catch (IOException e) {
             log.error("NstBrowserException: {}", e.getMessage());
         }
