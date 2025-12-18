@@ -8,6 +8,8 @@ import com.yves_gendron.automation_tiktok.system.client.mailtm.dto.GetTokenRespo
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
@@ -43,6 +45,8 @@ public class MailTmClient {
                     .build();
 
             Response response = okHttpClient.newCall(request).execute();
+            response = handleTooManyRequests(request, response);
+
             okHttpHelper.buildResponseBodyOrThrow(response, "MailTmApi error: " + response.code() + " - " + response.message());
             response.close();
 
@@ -67,6 +71,8 @@ public class MailTmClient {
                     .build();
 
             Response response = okHttpClient.newCall(request).execute();
+            response = handleTooManyRequests(request, response);
+
             String responseBody = okHttpHelper.buildResponseBodyOrThrow(response, "MailTmApi error: " + response.code() + " - " + response.message());
             response.close();
 
@@ -85,6 +91,8 @@ public class MailTmClient {
                     .build();
 
             Response response = okHttpClient.newCall(request).execute();
+            response = handleTooManyRequests(request, response);
+
             String responseBody = okHttpHelper.buildResponseBodyOrThrow(response, "MailTmApi error: " + response.code() + " - " + response.message());
             response.close();
 
@@ -100,21 +108,48 @@ public class MailTmClient {
     }
 
     public GetMessagesResponse getMessages(String token) {
-        try {
-            String createAccountUrl = MAIL_TM_BASE_URL + "/messages";
-            Request request = new Request.Builder()
-                    .url(createAccountUrl)
-                    .header("Authorization", "Bearer " + token)
-                    .get()
-                    .build();
+        String url = MAIL_TM_BASE_URL + "/messages";
+        Request request = new Request.Builder()
+                .url(url)
+                .header("Authorization", "Bearer " + token)
+                .get()
+                .build();
 
-            Response response = okHttpClient.newCall(request).execute();
-            String responseBody = okHttpHelper.buildResponseBodyOrThrow(response, "MailTmApi error: " + response.code() + " - " + response.message());
+        try (Response initialResponse = okHttpClient.newCall(request).execute()) {
+            Response response = handleTooManyRequests(request, initialResponse);
+
+            String responseBody = okHttpHelper.buildResponseBodyOrThrow(
+                    response,
+                    "MailTmApi error: " + response.code() + " - " + response.message()
+            );
             response.close();
 
             return objectMapper.readValue(responseBody, GetMessagesResponse.class);
+
         } catch (IOException e) {
-            throw new RuntimeException("Exception while getting messages from MailTm");
+            throw new RuntimeException("Exception while getting messages from MailTm", e);
         }
     }
+
+    private Response handleTooManyRequests(Request request, Response response) throws IOException {
+        int attempts = 3;
+
+        while (attempts-- > 0 && response.code() == HttpStatus.TOO_MANY_REQUESTS.value()) {
+            String retryAfterHeader = response.header(HttpHeaders.RETRY_AFTER);
+            long waitTime = 1500;
+            if (retryAfterHeader != null) {
+                try {
+                    waitTime = Long.parseLong(retryAfterHeader) * 1000;
+                } catch (NumberFormatException ignored) {}
+            }
+
+            response.close();
+            waitSafely(waitTime);
+            response = okHttpClient.newCall(request).execute();
+        }
+
+        return response;
+    }
+
+
 }
