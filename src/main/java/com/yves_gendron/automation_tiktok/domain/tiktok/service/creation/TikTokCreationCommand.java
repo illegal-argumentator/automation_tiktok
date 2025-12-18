@@ -103,6 +103,7 @@ public class TikTokCreationCommand implements CreationCommand {
         UpdateAccountRequest updateAccountRequest = UpdateAccountRequest.builder()
                 .username(tikTokService.generateUsername(tikTokAccount.getEmail()))
                 .nstProfileId(nstProfileId)
+                .countryCode(proxy.getGeolocation().getCountryCode())
                 .proxy(proxy)
                 .build();
 
