@@ -19,7 +19,7 @@ public class FileHelper {
         try (InputStream is = blob.getBinaryStream();
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
-            byte[] buffer = new byte[8192];
+            byte[] buffer = new byte[32_768];
             int bytesRead;
             while ((bytesRead = is.read(buffer)) != -1) {
                 out.write(buffer, 0, bytesRead);
