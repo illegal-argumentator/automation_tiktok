@@ -8,6 +8,7 @@ import com.yves_gendron.automation_tiktok.config.AppProps;
 import com.yves_gendron.automation_tiktok.domain.proxy.model.Proxy;
 import com.yves_gendron.automation_tiktok.domain.proxy.service.ProxyService;
 import com.yves_gendron.automation_tiktok.domain.proxy.web.dto.ProxyFilterRequest;
+import com.yves_gendron.automation_tiktok.domain.proxy.web.dto.UpdateProxyRequest;
 import com.yves_gendron.automation_tiktok.domain.tiktok.common.exception.TikTokCreationException;
 import com.yves_gendron.automation_tiktok.domain.tiktok.common.helper.TikTokCreationPlaywrightHelper;
 import com.yves_gendron.automation_tiktok.domain.tiktok.model.TikTokAccount;
@@ -116,6 +117,9 @@ public class TikTokCreationCommand implements CreationCommand {
                 .build();
 
         tikTokService.update(tikTokAccount.getId(), updateAccountRequest);
+
+        Proxy proxy = tikTokAccount.getProxy();
+        proxyService.update(proxy.getId(), UpdateProxyRequest.builder().accountsLinked(proxy.getAccountsLinked() + 1).build());
     }
 
     private void finishProcessing(List<AutoCloseable> autoCloseables) {
