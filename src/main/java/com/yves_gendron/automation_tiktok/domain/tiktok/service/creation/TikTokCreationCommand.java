@@ -81,7 +81,7 @@ public class TikTokCreationCommand implements CreationCommand {
                     CreateProfileResponse createProfileResponse = nstBrowserClient.createProfile(buildProfileName(tikTokAccount), proxy);
 
                     playwrightDto = playwrightInitializer.initBrowser(createProfileResponse.getData().getProfileId());
-                    initAccountWithStarterFields(createProfileResponse.getData().getProfileId(), tikTokAccount);
+                    initAccountWithStarterFields(createProfileResponse.getData().getProfileId(), tikTokAccount, proxy);
 
                     tikTokCreationPlaywrightHelper.processSignUp(playwrightDto, tikTokAccount);
                     finishAccountCreation(tikTokAccount);
@@ -99,10 +99,11 @@ public class TikTokCreationCommand implements CreationCommand {
         }
     }
 
-    private void initAccountWithStarterFields(String nstProfileId, TikTokAccount tikTokAccount) {
+    private void initAccountWithStarterFields(String nstProfileId, TikTokAccount tikTokAccount, Proxy proxy) {
         UpdateAccountRequest updateAccountRequest = UpdateAccountRequest.builder()
                 .username(tikTokService.generateUsername(tikTokAccount.getEmail()))
                 .nstProfileId(nstProfileId)
+                .proxy(proxy)
                 .build();
 
         tikTokService.update(tikTokAccount.getId(), updateAccountRequest);
