@@ -2,7 +2,6 @@ package com.yves_gendron.automation_tiktok.domain.proxy.model;
 
 import com.yves_gendron.automation_tiktok.common.dto.AuditingEntity;
 import com.yves_gendron.automation_tiktok.domain.proxy.model.embedded.Geolocation;
-import com.yves_gendron.automation_tiktok.domain.proxy.model.embedded.RotationData;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -33,6 +32,5 @@ public class Proxy extends AuditingEntity {
 
     private int accountsLinked;
 
-    @Embedded
-    private RotationData rotationData;
+    private String autoRotationLink;
 }

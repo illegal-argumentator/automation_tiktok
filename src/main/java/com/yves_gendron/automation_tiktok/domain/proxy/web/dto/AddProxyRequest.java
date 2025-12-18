@@ -1,7 +1,6 @@
 package com.yves_gendron.automation_tiktok.domain.proxy.web.dto;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -29,9 +28,6 @@ public class AddProxyRequest {
 
         @NotNull(message = "Port is required")
         private Integer port;
-
-        @Min(value = 60, message = "Minimum 60 seconds")
-        private Long autoRotateInterval;
 
         @NotNull(message = "Rotation link is required")
         private String autoRotationLink;

@@ -28,7 +28,7 @@ public class TikTokCreationProxyCommand implements CreationProxyCommand {
         List<Proxy> proxies = proxyService.findAll();
 
         if (proxies.isEmpty()) {
-            throw new ProxyNotAvailableException("No proxies are available to start creation");
+            throw new ProxyNotAvailableException("No proxies are available to start creation.");
         }
 
         try {

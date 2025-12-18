@@ -6,7 +6,6 @@ import com.yves_gendron.automation_tiktok.domain.proxy.common.exception.ProxyNot
 import com.yves_gendron.automation_tiktok.domain.proxy.common.mapper.ProxyMapper;
 import com.yves_gendron.automation_tiktok.domain.proxy.model.Proxy;
 import com.yves_gendron.automation_tiktok.domain.proxy.model.embedded.Geolocation;
-import com.yves_gendron.automation_tiktok.domain.proxy.model.embedded.RotationData;
 import com.yves_gendron.automation_tiktok.domain.proxy.repository.ProxyRepository;
 import com.yves_gendron.automation_tiktok.domain.proxy.web.dto.AddProxyRequest;
 import com.yves_gendron.automation_tiktok.domain.proxy.web.dto.ProxyFilterRequest;
@@ -20,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -101,16 +99,9 @@ public class ProxyService {
                 .timezone(proxyAddress.getTimezone())
                 .build();
 
-        RotationData rotationData = RotationData.builder()
-                .autoRotateInterval(proxy.getRotationData().getAutoRotateInterval())
-                .lastRotation(Instant.now())
-                .autoRotationLink(proxy.getRotationData().getAutoRotationLink())
-                .build();
-
         proxy.setGeolocation(geolocation);
         proxy.setAccountsLinked(0);
         proxy.setVerified(true);
-        proxy.setRotationData(rotationData);
     }
 
     public void update(String id, UpdateProxyRequest updateProxyRequest) {
@@ -123,9 +114,6 @@ public class ProxyService {
         Optional.ofNullable(updateProxyRequest.getCountryCode()).ifPresent(countryCode -> proxy.getGeolocation().setCountryCode(countryCode));
         Optional.ofNullable(updateProxyRequest.getPort()).ifPresent(proxy::setPort);
         Optional.ofNullable(updateProxyRequest.getAccountsLinked()).ifPresent(proxy::setAccountsLinked);
-        Optional.ofNullable(updateProxyRequest.getLastRotation()).ifPresent(lastRotation -> proxy.getRotationData().setLastRotation(lastRotation));
-        Optional.ofNullable(updateProxyRequest.getAutoRotateInterval()).ifPresent(autoRotateInterval -> proxy.getRotationData().setAutoRotateInterval(autoRotateInterval));
-        Optional.ofNullable(updateProxyRequest.getAutoRotateInterval()).ifPresent(autoRotateInterval -> proxy.getRotationData().setAutoRotateInterval(autoRotateInterval));
 
         proxyRepository.saveAndFlush(proxy);
     }

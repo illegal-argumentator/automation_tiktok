@@ -41,8 +41,9 @@ public class ProxyHelper {
             if (!verifiedProxy) {
                 continue;
             }
-            if(!hasRotated(proxy)) {
-                rotateProxy(proxy.getRotationData().getAutoRotationLink());
+
+            if(proxy.getAccountsLinked() >= appProps.getAccountsPerProxy()) {
+                rotateProxyByUrl(proxy.getAutoRotationLink());
                 updateProxyRotation(proxy);
             }
 
@@ -60,11 +61,6 @@ public class ProxyHelper {
         return proxies.stream()
                 .mapToInt(proxy -> appProps.getAccountsPerProxy() - proxy.getAccountsLinked())
                 .sum();
-    }
-
-    private boolean hasRotated(Proxy proxy) {
-        long timePassedFromLastRotation = Instant.now().getEpochSecond() - proxy.getRotationData().getLastRotation().getEpochSecond();
-        return timePassedFromLastRotation >= proxy.getRotationData().getAutoRotateInterval();
     }
 
     private boolean updateProxyVerification(Proxy proxy) {
@@ -93,13 +89,14 @@ public class ProxyHelper {
         proxyService.update(proxy.getId(), updateProxyRequest);
     }
 
-    private void rotateProxy(String rotationLink) {
+    private void rotateProxyByUrl(String rotationLink) {
             Request request = new Request.Builder()
                     .get()
                     .url(rotationLink)
                     .build();
         try (Response ignored = okHttpClient.newCall(request).execute()) {
-
+            String PROXY_ID_PARAMETER = "uuid";
+            log.info("Rotating proxy: {}.", rotationLink.substring(rotationLink.indexOf(PROXY_ID_PARAMETER) + 1));
         } catch (IOException e) {
             log.error("NstBrowserException: {}", e.getMessage());
         }

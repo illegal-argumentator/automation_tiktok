@@ -3,8 +3,6 @@ package com.yves_gendron.automation_tiktok.domain.proxy.web.dto;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.Instant;
-
 @Data
 @Builder
 public class UpdateProxyRequest {
@@ -24,8 +22,4 @@ public class UpdateProxyRequest {
     private Integer port;
 
     private Integer accountsLinked;
-
-    private Instant lastRotation;
-
-    private Long autoRotateInterval;
 }
