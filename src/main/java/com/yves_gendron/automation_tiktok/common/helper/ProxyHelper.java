@@ -12,7 +12,6 @@ import okhttp3.*;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +43,7 @@ public class ProxyHelper {
 
             if(proxy.getAccountsLinked() >= appProps.getAccountsPerProxy()) {
                 rotateProxyByUrl(proxy.getAutoRotationLink());
-                updateProxyRotation(proxy);
+                proxyService.update(proxy.getId(), UpdateProxyRequest.builder().accountsLinked(0).verified(true).build());
             }
 
             accessibleProxies.add(proxy);
@@ -77,16 +76,6 @@ public class ProxyHelper {
         }
 
         return verifiedProxy;
-    }
-
-    private void updateProxyRotation(Proxy proxy) {
-        UpdateProxyRequest updateProxyRequest = UpdateProxyRequest.builder()
-                .verified(true)
-                .accountsLinked(0)
-                .lastRotation(Instant.now())
-                .build();
-
-        proxyService.update(proxy.getId(), updateProxyRequest);
     }
 
     private void rotateProxyByUrl(String rotationLink) {
