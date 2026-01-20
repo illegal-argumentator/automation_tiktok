@@ -4,13 +4,15 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.PlaywrightException;
 import com.microsoft.playwright.options.LoadState;
 import com.microsoft.playwright.options.WaitUntilState;
+import com.yves_gendron.automation_tiktok.common.utils.ThreadUtils;
+import com.yves_gendron.automation_tiktok.common.utils.tries.TryUtils;
+import com.yves_gendron.automation_tiktok.domain.mail.domain.services.MailService;
 import com.yves_gendron.automation_tiktok.domain.tiktok.common.exception.TikTokBlockActivityException;
 import com.yves_gendron.automation_tiktok.domain.tiktok.common.exception.TikTokCaptchaException;
 import com.yves_gendron.automation_tiktok.domain.tiktok.common.exception.TikTokCreationException;
 import com.yves_gendron.automation_tiktok.domain.tiktok.model.TikTokAccount;
 import com.yves_gendron.automation_tiktok.domain.tiktok.service.TikTokService;
 import com.yves_gendron.automation_tiktok.domain.tiktok.web.dto.UpdateAccountRequest;
-import com.yves_gendron.automation_tiktok.system.client.mailtm.MailTmService;
 import com.yves_gendron.automation_tiktok.system.service.browser.playwright.PlaywrightWaiter;
 import com.yves_gendron.automation_tiktok.system.service.browser.playwright.dto.PlaywrightDto;
 import com.yves_gendron.automation_tiktok.system.service.captcha.tiktokcaptcha.TikTokCaptchaSolver;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -35,7 +38,7 @@ public class TikTokCreationPlaywrightHelper {
 
     private final PlaywrightWaiter playwrightWaiter;
 
-    private final MailTmService mailTmService;
+    private final MailService mailTmService;
 
     private final TikTokCaptchaSolver tikTokCaptchaSolver;
 
@@ -84,6 +87,7 @@ public class TikTokCreationPlaywrightHelper {
     private void processSecondStepRegistration(Page page, TikTokAccount tikTokAccount) {
         log.info("Processing step two registration");
         LocalDate dotDate = LocalDate.parse(tikTokAccount.getBio().getDob().getDate().substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        var start = OffsetDateTime.now();
 
         waitRandomlyInRange(1200, 1600);
         page.click(MONTH_DIV);
@@ -111,7 +115,9 @@ public class TikTokCreationPlaywrightHelper {
         waitRandomlyInRange(1200, 1700);
 
         try {
-            String codeFromGeneratedEmail = mailTmService.getCodeFromGeneratedEmail(tikTokAccount.getEmail(), tikTokAccount.getPassword());
+            String codeFromGeneratedEmail = TryUtils.tryGet(() -> mailTmService.retrieveCodeFromMessage(tikTokAccount.getEmail(), start), 5,
+                            ThreadUtils.sleepRunnable(8_000,2000))
+                    .orElseThrow(() -> new TikTokCreationException(tikTokAccount, "No code received in email"));
             waitRandomlyInRange(1300, 1900);
             page.fill(CODE_INPUT, codeFromGeneratedEmail);
         } catch (Exception e) {
