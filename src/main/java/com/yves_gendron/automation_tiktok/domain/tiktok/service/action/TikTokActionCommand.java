@@ -9,6 +9,7 @@ import com.yves_gendron.automation_tiktok.common.exception.ApplicationAlreadyInP
 import com.yves_gendron.automation_tiktok.common.type.Action;
 import com.yves_gendron.automation_tiktok.common.type.Platform;
 import com.yves_gendron.automation_tiktok.common.type.Status;
+import com.yves_gendron.automation_tiktok.common.utils.PlayWrightUtils;
 import com.yves_gendron.automation_tiktok.domain.tiktok.common.exception.TikTokActionException;
 import com.yves_gendron.automation_tiktok.domain.tiktok.common.helper.TikTokActionPlaywrightHelper;
 import com.yves_gendron.automation_tiktok.domain.tiktok.common.helper.TikTokCreationPlaywrightHelper;
@@ -60,11 +61,12 @@ public abstract class TikTokActionCommand implements ActionCommand {
             Page page = playwrightDto.getPage();
 
             log.info("Opening browser");
+            page.bringToFront();
             page.navigate(TIKTOK_SIGN_IN_DUCK_DUCK_GO_URL, new Page.NavigateOptions().setWaitUntil(WaitUntilState.DOMCONTENTLOADED).setTimeout(35_000));
 
             playwrightWaiter.waitForSelectorAndAct(15000, page.locator(HOME_L0G_IN_SPAN).first(), locator -> {
                 if (locator.isVisible()) {
-                    locator.click();
+                    PlayWrightUtils.executeClick(locator, page);
                 }
             });
 
@@ -75,7 +77,7 @@ public abstract class TikTokActionCommand implements ActionCommand {
 
             playwrightWaiter.waitForSelectorAndAct(15000, page.locator(SELECT_ADD_DIV), locator -> {
                 if (locator.isVisible()) {
-                    locator.click();
+                    PlayWrightUtils.executeClick(locator, page);
                 }
             });
 
@@ -83,19 +85,13 @@ public abstract class TikTokActionCommand implements ActionCommand {
 
             startAction(tikTokAccount, playwrightDto, actionRequest);
         } catch (PlaywrightException e) {
-            log.error(e.getMessage());
+            log.error(e.getMessage(), e);
             throw new TikTokActionException(tikTokAccount, "Unstable proxy connection, couldn't access the element");
         } catch (NstBrowserException e) {
-            log.error(e.getMessage());
+            log.error(e.getMessage(), e);
             throw new TikTokActionException(tikTokAccount, "Nst Browser exception occurred. Probably plan exceeded");
         } finally {
-            playwrightDto.getAutoCloseables().forEach(ac -> {
-                try {
-                    ac.close();
-                } catch (Exception e) {
-                    log.error("Failed to close resource");
-                }
-            });
+            playwrightDto.close();
         }
     }
 
@@ -118,7 +114,10 @@ public abstract class TikTokActionCommand implements ActionCommand {
         return tikTokAccount;
     }
 
-    protected abstract void startAction(TikTokAccount tikTokAccount, PlaywrightDto playwrightDto, ActionRequest actionRequest);
+    protected abstract void startAction(
+            TikTokAccount tikTokAccount,
+            PlaywrightDto playwrightDto,
+            ActionRequest actionRequest);
 
     protected abstract void tearDownAccountAction(TikTokAccount tikTokAccount, ActionRequest actionRequest);
 

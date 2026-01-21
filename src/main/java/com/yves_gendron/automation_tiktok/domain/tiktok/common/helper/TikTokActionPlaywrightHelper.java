@@ -3,6 +3,8 @@ package com.yves_gendron.automation_tiktok.domain.tiktok.common.helper;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.FilePayload;
+import com.yves_gendron.automation_tiktok.common.utils.PlayWrightUtils;
+import com.yves_gendron.automation_tiktok.common.utils.tries.TryUtils;
 import com.yves_gendron.automation_tiktok.domain.tiktok.common.exception.TikTokActionException;
 import com.yves_gendron.automation_tiktok.domain.tiktok.common.exception.TikTokBlockActivityException;
 import com.yves_gendron.automation_tiktok.domain.tiktok.common.exception.TikTokCaptchaException;
@@ -29,22 +31,28 @@ public class TikTokActionPlaywrightHelper {
     private final TikTokCaptchaSolver tikTokCaptchaSolver;
 
     public void processBrowserLogIn(Page page, TikTokAccount tikTokAccount) {
-        playwrightWaiter.waitForSelector(40_000, page.locator(CONTINUE_WITH_FACEBOOK_DIV));
-        page.click(LOG_IN_USE_PHONE_OR_EMAIL_OR_USERNAME_TEXT);
+        TryUtils.tryRun(() -> playwrightWaiter.waitForSelector(40_000, page.locator(CONTINUE_WITH_FACEBOOK_DIV)), 2, () -> page.reload());
+        PlayWrightUtils.executeClick(page,LOG_IN_USE_PHONE_OR_EMAIL_OR_USERNAME_TEXT);
+//        page.click(LOG_IN_USE_PHONE_OR_EMAIL_OR_USERNAME_TEXT);
 
         page.waitForSelector(LOG_IN_WITH_EMAIL_OR_USERNAME_TEXT);
         waitRandomlyInRange(1200, 1600);
-        page.click(LOG_IN_WITH_EMAIL_OR_USERNAME_TEXT);
+//        page.click(LOG_IN_WITH_EMAIL_OR_USERNAME_TEXT);
+        PlayWrightUtils.executeClick(page,LOG_IN_WITH_EMAIL_OR_USERNAME_TEXT);
 
         page.waitForSelector(LOG_IN_EMAIL_INPUT);
         waitRandomlyInRange(1200, 1600);
-        page.fill(LOG_IN_EMAIL_INPUT, tikTokAccount.getEmail());
+        PlayWrightUtils.fill(page,LOG_IN_EMAIL_INPUT, tikTokAccount.getEmail());
+//        page.fill(LOG_IN_EMAIL_INPUT, tikTokAccount.getEmail());
 
         waitRandomlyInRange(1200, 1600);
-        page.fill(PASSWORD_INPUT, tikTokAccount.getPassword());
+//        page.fill(PASSWORD_INPUT, tikTokAccount.getPassword());
+        PlayWrightUtils.fill(page,PASSWORD_INPUT, tikTokAccount.getPassword());
 
         waitRandomlyInRange(1200, 1600);
         page.click(LOG_IN_BUTTON);
+        PlayWrightUtils.executeClick(page,LOG_IN_BUTTON);
+        waitRandomlyInRange(1200, 1600);
 
         handleAfterLogInBlockers(page, tikTokAccount);
     }
@@ -109,17 +117,17 @@ public class TikTokActionPlaywrightHelper {
     private void handleTikTokCaptcha(Page page, TikTokAccount tikTokAccount) {
         List<String> selectorsToAppearAfterSignIn = List.of(LOGGED_IN_TEXT, CAPTCHA_ID);
         playwrightWaiter.waitForSelectorAndAct(15_000, page.locator(String.join(", ", selectorsToAppearAfterSignIn)), locator -> {
-            if (page.locator(CAPTCHA_ID).isVisible()) {
-                try {
-                    log.warn("Captcha appeared on log in. Solving...");
-                    playwrightWaiter.waitForSelector(15_000, page.locator(CAPTCHA_IMG));
-                    tikTokCaptchaSolver.solve(page);
-                } catch (Exception e) {
-                    log.error("Captcha not solved: ", e);
-                    throw new TikTokCaptchaException(tikTokAccount, "Tik tok rotation captcha not solved");
-                }
-            } else if (page.locator(LOGGED_IN_TEXT).isVisible()) {
+            if (!page.locator(CAPTCHA_ID).isVisible()){
                 log.info("Successfully logged in");
+                return;
+            }
+            try {
+                log.warn("Captcha appeared on log in. Solving...");
+                TryUtils.tryRun(() -> playwrightWaiter.waitForSelector(30_000, page.locator(CAPTCHA_IMG)));
+//                    tikTokCaptchaSolver.solve(page);
+            } catch (Exception e) {
+                log.error("Captcha not solved: ", e);
+                throw new TikTokCaptchaException(tikTokAccount, "Tik tok rotation captcha not solved");
             }
         });
     }

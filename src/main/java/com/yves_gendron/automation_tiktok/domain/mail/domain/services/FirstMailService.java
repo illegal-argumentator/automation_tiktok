@@ -95,7 +95,7 @@ class FirstMailService implements MailService{
 
     @PostConstruct
     private void init() {
-        System.out.println(retrieveCodeFromMessage("ftmxfcdm@duhastmail.com", OffsetDateTime.now().minusDays(1)));
+        System.out.println(retrieveCodeFromMessage("iyojgzlt@duhastmail.com", OffsetDateTime.now().minusDays(1)));
     }
 
     private void importEmails() throws IOException {

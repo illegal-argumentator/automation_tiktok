@@ -44,7 +44,8 @@ public class ProxyVerifier {
 
     private boolean processProxyValidation(Proxy proxy) {
         OkHttpClient client = new OkHttpClient.Builder()
-                .callTimeout(3, TimeUnit.SECONDS)
+                .callTimeout(10, TimeUnit.SECONDS)
+                .writeTimeout(10, TimeUnit.SECONDS)
                 .proxy(new java.net.Proxy(java.net.Proxy.Type.HTTP, new InetSocketAddress(proxy.getHost(), proxy.getPort())))
                 .proxyAuthenticator((route, response) -> response.request().newBuilder()
                         .header("Proxy-Authorization", Credentials.basic(proxy.getUsername(), proxy.getPassword()))

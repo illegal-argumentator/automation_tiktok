@@ -1,9 +1,11 @@
 package com.yves_gendron.automation_tiktok.domain.tiktok.common.helper;
 
+import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.PlaywrightException;
 import com.microsoft.playwright.options.LoadState;
 import com.microsoft.playwright.options.WaitUntilState;
+import com.yves_gendron.automation_tiktok.common.utils.PlayWrightUtils;
 import com.yves_gendron.automation_tiktok.common.utils.ThreadUtils;
 import com.yves_gendron.automation_tiktok.common.utils.tries.TryUtils;
 import com.yves_gendron.automation_tiktok.domain.mail.domain.services.MailService;
@@ -25,6 +27,7 @@ import java.time.Month;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Random;
 
 import static com.yves_gendron.automation_tiktok.common.helper.WaitHelper.waitRandomlyInRange;
 import static com.yves_gendron.automation_tiktok.common.helper.WaitHelper.waitSafely;
@@ -35,6 +38,7 @@ import static com.yves_gendron.automation_tiktok.domain.tiktok.common.constants.
 @Component
 @RequiredArgsConstructor
 public class TikTokCreationPlaywrightHelper {
+    private final Random random = new Random();
 
     private final PlaywrightWaiter playwrightWaiter;
 
@@ -55,6 +59,7 @@ public class TikTokCreationPlaywrightHelper {
         processSecondStepRegistration(page, tikTokAccount);
         processThirdStepRegistration(page, tikTokAccount, true);
         log.info("TikTok account successfully created by email {}", tikTokAccount.getEmail());
+        ThreadUtils.sleep(2500, 2500);
     }
 
     private void processBrowserNavigation(PlaywrightDto playwrightDto) {
@@ -64,8 +69,8 @@ public class TikTokCreationPlaywrightHelper {
         page.navigate(TIKTOK_SIGN_UP_DUCK_DUCK_GO_URL, new Page.NavigateOptions().setWaitUntil(WaitUntilState.COMMIT));
 
         playwrightWaiter.waitForSelectorAndAct(40_000, page.locator(HOME_SIGN_UP_SPAN), locator -> {
-            if (locator.isVisible()) {
-                locator.click();
+            if (locator.first().isVisible()) {
+                locator.first().click();
             }
         });
 
@@ -76,12 +81,14 @@ public class TikTokCreationPlaywrightHelper {
         log.info("Processing step one registration");
 
         waitRandomlyInRange(1200, 2200);
-        page.click(SIGN_UP_USE_PHONE_OR_EMAIL_DIV);
+        PlayWrightUtils.executeClick(page.locator(SIGN_UP_USE_PHONE_OR_EMAIL_DIV), page);
+//        page.click(SIGN_UP_USE_PHONE_OR_EMAIL_DIV);
         waitRandomlyInRange(1200, 2300);
 
         page.waitForSelector(SIGN_UP_WITH_EMAIL_TEXT);
         waitRandomlyInRange(1000, 1700);
-        page.click(SIGN_UP_WITH_EMAIL_TEXT);
+//        page.click(SIGN_UP_WITH_EMAIL_TEXT);
+        PlayWrightUtils.executeClick(page.locator(SIGN_UP_WITH_EMAIL_TEXT), page);
     }
 
     private void processSecondStepRegistration(Page page, TikTokAccount tikTokAccount) {
@@ -90,25 +97,30 @@ public class TikTokCreationPlaywrightHelper {
         var start = OffsetDateTime.now();
 
         waitRandomlyInRange(1200, 1600);
-        page.click(MONTH_DIV);
+//        page.click(MONTH_DIV);
+        PlayWrightUtils.executeClick(page.locator(MONTH_DIV), page);
         waitRandomlyInRange(1200, 2000);
         page.click(selectMonth(Month.of(dotDate.getMonthValue())));
 
         waitRandomlyInRange(1000, 1500);
-        page.click(DAY_DIV);
+//        page.click(DAY_DIV);
+        PlayWrightUtils.executeClick(page.locator(DAY_DIV), page);
         waitRandomlyInRange(1100, 1900);
         page.click(selectDay(dotDate.getDayOfMonth()));
 
         waitRandomlyInRange(1200, 1800);
-        page.click(YEAR_DIV);
+//        page.click(YEAR_DIV);
+        PlayWrightUtils.executeClick(page.locator(YEAR_DIV), page);
         waitRandomlyInRange(1000, 1300);
         page.click(selectYear(Math.min(dotDate.getYear(), 2007)));
 
         waitRandomlyInRange(1000, 1500);
-        page.fill(SIGN_UP_EMAIL_INPUT, tikTokAccount.getEmail());
+        page.locator(SIGN_UP_EMAIL_INPUT).pressSequentially(tikTokAccount.getEmail(), new Locator.PressSequentiallyOptions().setDelay(random.nextInt(30, 70)));
+//        page.fill(SIGN_UP_EMAIL_INPUT, tikTokAccount.getEmail());
 
         waitRandomlyInRange(1700, 2500);
-        page.fill(PASSWORD_INPUT, tikTokAccount.getPassword());
+        page.locator(PASSWORD_INPUT).pressSequentially(tikTokAccount.getPassword(), new Locator.PressSequentiallyOptions().setDelay(random.nextInt(30, 70)));
+//        page.fill(PASSWORD_INPUT, tikTokAccount.getPassword());
 
         waitRandomlyInRange(900, 1700);
         handleSendCodeAction(tikTokAccount, page, true);
@@ -116,16 +128,18 @@ public class TikTokCreationPlaywrightHelper {
 
         try {
             String codeFromGeneratedEmail = TryUtils.tryGet(() -> mailTmService.retrieveCodeFromMessage(tikTokAccount.getEmail(), start), 5,
-                            ThreadUtils.sleepRunnable(8_000,2000))
+                            ThreadUtils.sleepRunnable(8_000, 2000))
                     .orElseThrow(() -> new TikTokCreationException(tikTokAccount, "No code received in email"));
             waitRandomlyInRange(1300, 1900);
-            page.fill(CODE_INPUT, codeFromGeneratedEmail);
+//            page.fill(CODE_INPUT, codeFromGeneratedEmail);
+            page.locator(CODE_INPUT).pressSequentially(codeFromGeneratedEmail, new Locator.PressSequentiallyOptions().setDelay(random.nextInt(30, 70)));
         } catch (Exception e) {
             throw new TikTokCreationException(tikTokAccount, "Error while getting code from email");
         }
 
         waitRandomlyInRange(1800, 2100);
-        page.click(NEXT_BUTTON);
+//        page.click(NEXT_BUTTON);
+        PlayWrightUtils.executeClick(page.locator(NEXT_BUTTON), page);
 
         waitForLoadingOrThrow(page);
         handleSuspiciousActivity(page, tikTokAccount);
@@ -146,15 +160,18 @@ public class TikTokCreationPlaywrightHelper {
 
     private void processThirdStepRegistration(Page page, TikTokAccount tikTokAccount, boolean retryProcess) {
         log.info("Processing step three registration");
+        ThreadUtils.sleep(2000, 2500);
 
         page.waitForSelector(USERNAME_INPUT);
-        page.fill(USERNAME_INPUT, tikTokAccount.getUsername());
+        page.locator(USERNAME_INPUT).pressSequentially(tikTokAccount.getUsername(), new Locator.PressSequentiallyOptions().setDelay(random.nextInt(30, 70)));
+//        page.fill(USERNAME_INPUT, tikTokAccount.getUsername());
         waitRandomlyInRange(1000, 1700);
 
         handleUsernameNotAvailable(page, tikTokAccount, retryProcess);
 
         page.waitForSelector(SIGN_UP_BUTTON);
-        page.click(SIGN_UP_BUTTON);
+//        page.click(SIGN_UP_BUTTON);
+        PlayWrightUtils.executeClick(page.locator(SIGN_UP_BUTTON), page);
 
         waitForLogin(page);
     }
@@ -186,6 +203,7 @@ public class TikTokCreationPlaywrightHelper {
         });
 
         page.waitForLoadState(LoadState.LOAD, new Page.WaitForLoadStateOptions().setTimeout(60_000));
+        ThreadUtils.sleep(4000, 6000);
     }
 
     private void handleSuspiciousActivity(Page page, TikTokAccount tikTokAccount) {

@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,14 +37,27 @@ public class ProxyHelper {
                 break;
             }
 
-            boolean verifiedProxy = updateProxyVerification(proxy);
-            if (!verifiedProxy) {
+
+
+            if (proxy.getAccountsLinked() < appProps.getAccountsPerProxy()) {
+                boolean verifiedProxy = updateProxyVerification(proxy);
+                if (!verifiedProxy) {
+                    continue;
+                }
+                accessibleProxies.add(proxy);
                 continue;
             }
 
-            if(proxy.getAccountsLinked() >= appProps.getAccountsPerProxy()) {
-                rotateProxyByUrl(proxy.getAutoRotationLink());
-                proxyService.update(proxy.getId(), UpdateProxyRequest.builder().accountsLinked(0).verified(true).build());
+            if (!StringUtils.hasText(proxy.getAutoRotationLink())){
+                continue;
+            }
+
+            rotateProxyByUrl(proxy.getAutoRotationLink());
+            proxyService.update(proxy.getId(), UpdateProxyRequest.builder().accountsLinked(0).verified(true).build());
+
+            boolean verifiedProxy = updateProxyVerification(proxy);
+            if (!verifiedProxy) {
+                continue;
             }
 
             accessibleProxies.add(proxy);

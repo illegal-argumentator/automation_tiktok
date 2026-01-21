@@ -58,6 +58,7 @@ public class PlaywrightInitializer implements BrowserInitializer<PlaywrightDto> 
         Browser browser = playwright.chromium().connectOverCDP(cdpUrl);
         BrowserContext context = browser.contexts().get(0);
         Page page = context.pages().get(0);
+        page.bringToFront();
 
         context.addInitScript("navigator.credentials.create = async () => { return {}; };");
 

@@ -3,6 +3,9 @@ package com.yves_gendron.automation_tiktok.domain.tiktok.service.action;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.WaitUntilState;
 import com.yves_gendron.automation_tiktok.common.type.Action;
+import com.yves_gendron.automation_tiktok.common.utils.PlayWrightUtils;
+import com.yves_gendron.automation_tiktok.common.utils.ThreadUtils;
+import com.yves_gendron.automation_tiktok.common.utils.tries.TryUtils;
 import com.yves_gendron.automation_tiktok.domain.file.video.model.Video;
 import com.yves_gendron.automation_tiktok.domain.file.video.service.VideoService;
 import com.yves_gendron.automation_tiktok.domain.tiktok.common.exception.TikTokActionException;
@@ -23,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.nio.file.Path;
 import java.sql.SQLException;
+import java.util.Random;
 
 import static com.yves_gendron.automation_tiktok.common.helper.WaitHelper.waitRandomlyInRange;
 import static com.yves_gendron.automation_tiktok.domain.tiktok.common.constants.TikTokConstants.TIKTOK_BASE_URL;
@@ -73,23 +77,37 @@ public class TikTokVideoActionCommand extends TikTokActionCommand {
 
         log.info("Video uploaded successfully");
 
-        waitRandomlyInRange(1000, 2000);
-        playwrightWaiter.waitForSelectorAndAct(12000, page.locator(CANCEL_CONTENT_CHECKS_BUTTON), locator -> {
-            if (locator.isVisible()) {
-                locator.click();
+        ThreadUtils.sleep(2000, 2500);
+        log.info("Close dialogs if any");
+        for (int i = 0, size = new Random().nextInt(2,5); i < size; i++) {
+            page.keyboard().press("Escape");
+            ThreadUtils.sleep(200, 250);
+            if (page.locator(".common-modal-close").count() > 0) {
+                TryUtils.tryRun(() -> PlayWrightUtils
+                        .executeClick(page.locator(".common-modal-close").first(), page));
             }
-        });
+            if (page.locator(".common-modal-close svg").count() > 0) {
+                TryUtils.tryRun(() -> PlayWrightUtils
+                        .executeClick(page.locator(".common-modal-close svg").first(), page));
+            }
+        }
 
-        waitRandomlyInRange(1500, 2500);
+        ThreadUtils.sleep(1500, 2500);
+
         playwrightWaiter.waitForSelectorAndAct(page.locator(POST_BUTTON), locator -> {
             if (locator.isVisible()) {
-                page.click(POST_BUTTON);
-            } else {
-                page.click(POST_NOW_BUTTON);
+                PlayWrightUtils.executeClick(locator, page);
             }
         });
+        TryUtils.tryRun(() -> playwrightWaiter.waitForSelectorAndAct(page.locator(POST_NOW_BUTTON), locator -> {
+            if (locator.isVisible()) {
+                PlayWrightUtils.executeClick(locator, page);
+            }
+        }));
 
-        waitRandomlyInRange(1000, 1800);
+        ThreadUtils.sleep(2500, 2500);
+        log.info("Navigating to base url to confirm publication");
+        ThreadUtils.sleep(5500, 5500);
 
         page.navigate(TIKTOK_BASE_URL, new Page.NavigateOptions().setWaitUntil(WaitUntilState.COMMIT));
 
@@ -98,6 +116,7 @@ public class TikTokVideoActionCommand extends TikTokActionCommand {
                 log.info("Video successfully published");
             }
         });
+        ThreadUtils.sleep(1500, 2500);
     }
 
     private void uploadVideo(TikTokAccount tikTokAccount, VideoActionRequest videoActionRequest, Page page) {
