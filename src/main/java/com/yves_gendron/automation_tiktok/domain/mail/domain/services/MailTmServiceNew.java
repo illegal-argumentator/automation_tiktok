@@ -19,7 +19,7 @@ import java.util.Objects;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-class MailTmServiceTest implements MailService {
+class MailTmServiceNew implements MailService {
 
     private static final String BASE_URL = "https://api.mail.tm";
     private static final RestTemplate REST_TEMPLATE = new RestTemplate();

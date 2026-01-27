@@ -25,7 +25,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
-@Service
+//@Service
 @RequiredArgsConstructor
 class FirstMailService implements MailService{
     private static final String API_KEY = "UbFp9BEzLme_R6xSm0KVP09Ty0V1OrJ6NaHwZXPCoH3MkNOQ5HXUY26FlaCcZyd4";
