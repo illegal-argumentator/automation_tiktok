@@ -44,13 +44,17 @@ class MailTmServiceNew implements MailService {
                 .createdAt(OffsetDateTime.now())
                 .build();
 
+        log.info("Saving mail entity: {}", email);
         mailRepository.save(entity);
+        log.info("Mail entity saved: {}", email);
         return email;
     }
 
     @Override
     public String retrieveCodeFromMessage(String email, OffsetDateTime date) {
+        log.info("Looking for mail entity by email: {}", email);
         var search = MailSearch.builder().email(email).build();
+        log.info("MailRepository count: {}", mailRepository.count());
         var entity = mailRepository.findAll(search, Pageable.ofSize(1))
                 .stream()
                 .findFirst()
