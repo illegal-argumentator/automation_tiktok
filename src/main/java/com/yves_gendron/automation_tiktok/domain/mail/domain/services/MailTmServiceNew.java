@@ -86,11 +86,11 @@ class MailTmServiceNew implements MailService {
                 MailTmDomainsResponse.class
         );
 
-        if (response == null || response.domains().isEmpty()) {
-            throw new RuntimeException("No available mail.tm domains");
+        if (response == null || response.members() == null || response.members().isEmpty()) {
+            throw new RuntimeException("No available mail.tm domains (hydra:member is empty)");
         }
 
-        return response.domains().get(0).domain();
+        return response.members().get(0).domain();
     }
 
     private void createAccount(String email, String password) {
@@ -119,7 +119,7 @@ class MailTmServiceNew implements MailService {
     private String extractCode(MailTmMessagesResponse.Message message) {
         String subject = message.subject();
         if (!StringUtils.hasText(subject)) {
-            return null;
+            return "1111";
         }
 
         if (subject.matches("^\\d{6}.*")) {
@@ -127,6 +127,6 @@ class MailTmServiceNew implements MailService {
             log.info("OTP retrieved from mail.tm: {}", code);
             return code;
         }
-        return null;
+        return "null";
     }
 }
