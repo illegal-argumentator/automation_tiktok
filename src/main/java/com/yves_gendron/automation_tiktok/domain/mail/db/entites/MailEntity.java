@@ -23,6 +23,8 @@ public class MailEntity {
     private String email;
     private String password;
     private String provider;
+    @Column(length = 2048)
+    private String accessToken;
 
     private OffsetDateTime usedAt;
     @CreatedDate
