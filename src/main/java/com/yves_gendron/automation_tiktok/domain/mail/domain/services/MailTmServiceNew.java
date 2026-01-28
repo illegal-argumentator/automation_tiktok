@@ -1,5 +1,6 @@
 package com.yves_gendron.automation_tiktok.domain.mail.domain.services;
 
+import com.yves_gendron.automation_tiktok.common.utils.OkHttpUtil;
 import com.yves_gendron.automation_tiktok.domain.mail.db.entites.MailEntity;
 import com.yves_gendron.automation_tiktok.domain.mail.db.repositories.MailRepository;
 import com.yves_gendron.automation_tiktok.domain.mail.db.searches.MailSearch;
@@ -7,11 +8,16 @@ import com.yves_gendron.automation_tiktok.domain.mail.db.dto.*;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.OffsetDateTime;
 import java.util.Objects;
@@ -25,7 +31,6 @@ class MailTmServiceNew implements MailService {
     private static final RestTemplate REST_TEMPLATE = new RestTemplate();
 
     private final MailRepository mailRepository;
-
 
     @Override
     public String getEmail() {
@@ -93,12 +98,28 @@ class MailTmServiceNew implements MailService {
         return response.members().get(0).domain();
     }
 
-    private void createAccount(String email, String password) {
-        REST_TEMPLATE.postForEntity(
-                BASE_URL + "/accounts",
-                new MailTmAccountRequest(email, password),
-                Void.class
-        );
+    private static void createAccount(String email, String password) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            OkHttpClient okHttpClient = new OkHttpClient();
+            OkHttpUtil okHttpUtil = new OkHttpUtil(objectMapper, okHttpClient);
+
+            String jsonBody = objectMapper.writeValueAsString(new MailTmAccountRequest(email, password));
+
+            Request request = new Request.Builder()
+                    .url(BASE_URL + "/accounts")
+                    .post(RequestBody.create(jsonBody, MediaType.get("application/json")))
+                    .build();
+
+            String response = okHttpUtil.handleApiRequest(request);
+            System.out.println(response);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public static void main(String[] args) {
+        createAccount("jahdgjkeweg2376@virgilian.com", "Qwerty1234@");
     }
 
     private String getToken(String email, String password) {
