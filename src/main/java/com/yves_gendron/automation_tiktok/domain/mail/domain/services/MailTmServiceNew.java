@@ -17,8 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import tools.jackson.databind.ObjectMapper;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -130,40 +128,7 @@ class MailTmServiceNew implements MailService {
 
         throw new RuntimeException("OTP code not received within timeout");
     }
-//@Override
-//public String retrieveCodeFromMessage(String email, OffsetDateTime date) {
-//    log.info("Waiting for MANUAL OTP input for email: {}", email);
-//    log.info("👉 Put OTP code into file: /tmp/tiktok_otp.txt");
-//
-//    Path otpFile = Path.of("/tmp/tiktok_otp.txt");
-//
-//    long timeoutMs = 5 * 60_000; // 5 хвилин
-//    long start = System.currentTimeMillis();
-//
-//    while (System.currentTimeMillis() - start < timeoutMs) {
-//        try {
-//            if (Files.exists(otpFile)) {
-//                String code = Files.readString(otpFile).trim();
-//
-//                if (code.matches("\\d{6}")) {
-//                    log.info("✅ OTP received manually: {}", code);
-//
-//                    Files.deleteIfExists(otpFile); // щоб не використався вдруге
-//                    return code;
-//                } else {
-//                    log.warn("OTP file exists but content is invalid: '{}'", code);
-//                }
-//            }
-//
-//            Thread.sleep(2000);
-//
-//        } catch (Exception e) {
-//            log.warn("Waiting for manual OTP...", e);
-//        }
-//    }
 
-//    throw new RuntimeException("Manual OTP was not provided within timeout");
-//}
 
     private String fetchDomain() {
         try {
