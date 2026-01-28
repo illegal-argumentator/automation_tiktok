@@ -120,8 +120,7 @@ public class TikTokCreationPlaywrightHelper {
 //        page.fill(SIGN_UP_EMAIL_INPUT, tikTokAccount.getEmail());
 
         waitRandomlyInRange(1700, 2500);
-//        page.locator(PASSWORD_INPUT).pressSequentially(tikTokAccount.getPassword(), new Locator.PressSequentiallyOptions().setDelay(random.nextInt(30, 70)));
-        page.locator(PASSWORD_INPUT).pressSequentially("85794163Keka!", new Locator.PressSequentiallyOptions().setDelay(random.nextInt(30, 70)));
+        page.locator(PASSWORD_INPUT).pressSequentially(tikTokAccount.getPassword(), new Locator.PressSequentiallyOptions().setDelay(random.nextInt(30, 70)));
 //        page.fill(PASSWORD_INPUT, tikTokAccount.getPassword());
 
         waitRandomlyInRange(900, 1700);
