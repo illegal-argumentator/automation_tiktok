@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import tools.jackson.databind.ObjectMapper;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -93,41 +95,75 @@ class MailTmServiceNew implements MailService {
         return email;
     }
 
-    @Override
-    public String retrieveCodeFromMessage(String email, OffsetDateTime date) {
-        log.info("Looking for OTP for email: {}", email);
+//    @Override
+//    public String retrieveCodeFromMessage(String email, OffsetDateTime date) {
+//        log.info("Looking for OTP for email: {}", email);
+//
+//        MailEntity entity = mailRepository.findAll(
+//                MailSearch.builder().email(email).build(),
+//                Pageable.ofSize(1)
+//        ).stream().findFirst().orElseThrow();
+//
+//        long timeoutMs = 60_000;
+//        long start = System.currentTimeMillis();
+//
+//        while (System.currentTimeMillis() - start < timeoutMs) {
+//            try {
+//                Request request = new Request.Builder()
+//                        .url(BASE_URL + "/messages")
+//                        .header("Authorization", "Bearer " + entity.getAccessToken())
+//                        .build();
+//
+//                String messagesJson = OK_HTTP_UTIL.handleApiRequest(request);
+//                String code = extractCode(messagesJson, date, entity.getAccessToken());
+//
+//                if (code != null) {
+//                    return code;
+//                }
+//
+//                Thread.sleep(3000);
+//
+//            } catch (Exception e) {
+//                log.warn("Waiting for OTP...", e);
+//            }
+//        }
+//
+//        throw new RuntimeException("OTP code not received within timeout");
+//    }
+@Override
+public String retrieveCodeFromMessage(String email, OffsetDateTime date) {
+    log.info("Waiting for MANUAL OTP input for email: {}", email);
+    log.info("👉 Put OTP code into file: /tmp/tiktok_otp.txt");
 
-        MailEntity entity = mailRepository.findAll(
-                MailSearch.builder().email(email).build(),
-                Pageable.ofSize(1)
-        ).stream().findFirst().orElseThrow();
+    Path otpFile = Path.of("/tmp/tiktok_otp.txt");
 
-        long timeoutMs = 60_000;
-        long start = System.currentTimeMillis();
+    long timeoutMs = 5 * 60_000; // 5 хвилин
+    long start = System.currentTimeMillis();
 
-        while (System.currentTimeMillis() - start < timeoutMs) {
-            try {
-                Request request = new Request.Builder()
-                        .url(BASE_URL + "/messages")
-                        .header("Authorization", "Bearer " + entity.getAccessToken())
-                        .build();
+    while (System.currentTimeMillis() - start < timeoutMs) {
+        try {
+            if (Files.exists(otpFile)) {
+                String code = Files.readString(otpFile).trim();
 
-                String messagesJson = OK_HTTP_UTIL.handleApiRequest(request);
-                String code = extractCode(messagesJson, date, entity.getAccessToken());
+                if (code.matches("\\d{6}")) {
+                    log.info("✅ OTP received manually: {}", code);
 
-                if (code != null) {
+                    Files.deleteIfExists(otpFile); // щоб не використався вдруге
                     return code;
+                } else {
+                    log.warn("OTP file exists but content is invalid: '{}'", code);
                 }
-
-                Thread.sleep(3000);
-
-            } catch (Exception e) {
-                log.warn("Waiting for OTP...", e);
             }
-        }
 
-        throw new RuntimeException("OTP code not received within timeout");
+            Thread.sleep(2000);
+
+        } catch (Exception e) {
+            log.warn("Waiting for manual OTP...", e);
+        }
     }
+
+    throw new RuntimeException("Manual OTP was not provided within timeout");
+}
 
     private String fetchDomain() {
         try {
