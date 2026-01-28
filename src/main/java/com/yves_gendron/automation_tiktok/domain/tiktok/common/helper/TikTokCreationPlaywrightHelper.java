@@ -116,7 +116,6 @@ public class TikTokCreationPlaywrightHelper {
 
         waitRandomlyInRange(1000, 1500);
         page.locator(SIGN_UP_EMAIL_INPUT).pressSequentially(tikTokAccount.getEmail(), new Locator.PressSequentiallyOptions().setDelay(random.nextInt(30, 70)));
-//        page.locator(SIGN_UP_EMAIL_INPUT).pressSequentially("твій_email@gmail.com", new Locator.PressSequentiallyOptions().setDelay(random.nextInt(30, 70)));
 //        page.fill(SIGN_UP_EMAIL_INPUT, tikTokAccount.getEmail());
 
         waitRandomlyInRange(1700, 2500);
@@ -127,16 +126,26 @@ public class TikTokCreationPlaywrightHelper {
         handleSendCodeAction(tikTokAccount, page, true);
         waitRandomlyInRange(1200, 1700);
 
-        try {
-            String codeFromGeneratedEmail = TryUtils.tryGet(() -> mailTmService.retrieveCodeFromMessage(tikTokAccount.getEmail(), start), 5,
-                            ThreadUtils.sleepRunnable(8_000, 2000))
-                    .orElseThrow(() -> new TikTokCreationException(tikTokAccount, "No code received in email"));
-            waitRandomlyInRange(1300, 1900);
+//        try {
+//            String codeFromGeneratedEmail = TryUtils.tryGet(() -> mailTmService.retrieveCodeFromMessage(tikTokAccount.getEmail(), start), 5,
+//                            ThreadUtils.sleepRunnable(8_000, 2000))
+//                    .orElseThrow(() -> new TikTokCreationException(tikTokAccount, "No code received in email"));
+//            waitRandomlyInRange(1300, 1900);
 //            page.fill(CODE_INPUT, codeFromGeneratedEmail);
-            page.locator(CODE_INPUT).pressSequentially(codeFromGeneratedEmail, new Locator.PressSequentiallyOptions().setDelay(random.nextInt(30, 70)));
-        } catch (Exception e) {
-            throw new TikTokCreationException(tikTokAccount, "Error while getting code from email");
-        }
+//            page.locator(CODE_INPUT).pressSequentially(codeFromGeneratedEmail, new Locator.PressSequentiallyOptions().setDelay(random.nextInt(30, 70)));
+//        } catch (Exception e) {
+//            throw new TikTokCreationException(tikTokAccount, "Error while getting code from email");
+//        }
+        System.out.println("ENTER VERIFICATION CODE FROM EMAIL:");
+        java.util.Scanner scanner = new java.util.Scanner(System.in);
+        String manualCode = scanner.nextLine();
+
+        waitRandomlyInRange(1300, 1900);
+        page.locator(CODE_INPUT)
+                .pressSequentially(
+                        manualCode,
+                        new Locator.PressSequentiallyOptions().setDelay(random.nextInt(30, 70))
+                );
 
         waitRandomlyInRange(1800, 2100);
 //        page.click(NEXT_BUTTON);
