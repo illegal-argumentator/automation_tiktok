@@ -73,7 +73,7 @@ class MailTmServiceNew implements MailService {
     @Override
     public String getEmail() {
         String domain = fetchDomain();
-        String email = "user" + generate() + "@" + domain;
+        String email = generate() + "@" + domain;
         String password = "secret123";
 
         createAccount(email, password);
