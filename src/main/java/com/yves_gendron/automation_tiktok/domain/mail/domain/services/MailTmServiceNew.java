@@ -18,7 +18,9 @@ import org.springframework.util.StringUtils;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.OffsetDateTime;
-import java.util.Objects;
+import java.util.regex.Pattern;
+
+import static org.apache.commons.lang3.StringUtils.firstNonBlank;
 
 @Slf4j
 @Service
@@ -30,8 +32,13 @@ class MailTmServiceNew implements MailService {
     private static final OkHttpClient OK_HTTP_CLIENT = new OkHttpClient();
     private static final OkHttpUtil OK_HTTP_UTIL = new OkHttpUtil(OBJECT_MAPPER, OK_HTTP_CLIENT);
 
+    private static final Pattern OTP_PATTERN = Pattern.compile("\\b(\\d{6})\\b");
+
     private final MailRepository mailRepository;
 
+    // =========================
+    // EMAIL CREATION
+    // =========================
     @Override
     public String getEmail() {
         String domain = fetchDomain();
@@ -51,118 +58,175 @@ class MailTmServiceNew implements MailService {
 
         log.info("Saving mail entity: {}", email);
         mailRepository.save(entity);
-        log.info("Mail entity saved: {}", email);
+
         return email;
     }
 
+    // =========================
+    // OTP RETRIEVAL (OLD LOGIC + BODY PARSING)
+    // =========================
     @Override
     public String retrieveCodeFromMessage(String email, OffsetDateTime date) {
-        log.info("Looking for mail entity by email: {}", email);
-        var search = MailSearch.builder().email(email).build();
-        log.info("MailRepository count: {}", mailRepository.count());
-        var entity = mailRepository.findAll(search, Pageable.ofSize(1))
-                .stream()
-                .findFirst()
-                .orElseThrow();
+        log.info("Looking for OTP for email: {}", email);
 
-        Request request = new Request.Builder()
-                .url(BASE_URL + "/messages")
-                .header("Authorization", "Bearer " + entity.getAccessToken())
-                .build();
+        var entity = mailRepository.findAll(
+                MailSearch.builder().email(email).build(),
+                Pageable.ofSize(1)
+        ).stream().findFirst().orElseThrow();
 
-        try {
-            String responseJson = OK_HTTP_UTIL.handleApiRequest(request);
-            MailTmMessagesResponse response = OBJECT_MAPPER.readValue(responseJson, MailTmMessagesResponse.class);
+        long timeoutMs = 60_000;
+        long start = System.currentTimeMillis();
 
-            if (response == null || response.messages() == null) {
-                throw new RuntimeException("No messages from mail.tm");
+        while (System.currentTimeMillis() - start < timeoutMs) {
+            try {
+                Request request = new Request.Builder()
+                        .url(BASE_URL + "/messages")
+                        .header("Authorization", "Bearer " + entity.getAccessToken())
+                        .build();
+
+                String messagesJson = OK_HTTP_UTIL.handleApiRequest(request);
+                String code = extractCode(messagesJson, date, entity.getAccessToken());
+
+                if (code != null) {
+                    return code;
+                }
+
+                Thread.sleep(3000);
+
+            } catch (Exception e) {
+                log.warn("Waiting for OTP...", e);
             }
-
-            return response.messages().stream()
-                    .filter(m -> m.createdAt().isAfter(date))
-                    .map(this::extractCode)
-                    .filter(Objects::nonNull)
-                    .findFirst()
-                    .orElseThrow();
-        } catch (Exception e) {
-            throw new RuntimeException("Error retrieving messages from mail.tm", e);
         }
+
+        throw new RuntimeException("OTP code not received within timeout");
     }
 
+    // =========================
+    // DOMAIN
+    // =========================
     private String fetchDomain() {
         try {
             Request request = new Request.Builder()
                     .url(BASE_URL + "/domains")
                     .build();
 
-            String responseJson = OK_HTTP_UTIL.handleApiRequest(request);
-            MailTmDomainsResponse response = OBJECT_MAPPER.readValue(responseJson, MailTmDomainsResponse.class);
-            if (response == null || response.members() == null || response.members().isEmpty()) {
-                throw new RuntimeException("No available mail.tm domains (hydra:member is empty)");
-            }
+            String json = OK_HTTP_UTIL.handleApiRequest(request);
+            MailTmDomainsResponse response =
+                    OBJECT_MAPPER.readValue(json, MailTmDomainsResponse.class);
 
-            return response.members().get(0).domain();
+            return response.members().stream()
+                    .map(MailTmDomainsResponse.Domain::domain)
+                    .filter(d -> d.endsWith(".com"))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("No valid mail.tm domain"));
+
         } catch (Exception e) {
-            throw new RuntimeException("Error fetching mail.tm domains", e);
+            throw new RuntimeException("Failed to fetch domain", e);
         }
     }
 
+    // =========================
+    // ACCOUNT
+    // =========================
     private static void createAccount(String email, String password) {
         try {
-            String jsonBody = OBJECT_MAPPER.writeValueAsString(new MailTmAccountRequest(email, password));
+            String body = OBJECT_MAPPER.writeValueAsString(
+                    new MailTmAccountRequest(email, password)
+            );
 
             Request request = new Request.Builder()
                     .url(BASE_URL + "/accounts")
-                    .post(RequestBody.create(jsonBody, MediaType.get("application/json")))
+                    .post(RequestBody.create(body, MediaType.get("application/json")))
                     .build();
 
-            String response = OK_HTTP_UTIL.handleApiRequest(request);
-            System.out.println(response);
+            OK_HTTP_UTIL.handleApiRequest(request);
+
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new RuntimeException("Failed to create mail.tm account", e);
         }
     }
 
-//    public static void main(String[] args) {
-//        createAccount("jahdgjkeweg2376@virgilian.com", "Qwerty1234@");
-//    }
-
     private String getToken(String email, String password) {
         try {
-            String jsonBody = OBJECT_MAPPER.writeValueAsString(
+            String body = OBJECT_MAPPER.writeValueAsString(
                     new MailTmTokenRequest(email, password)
             );
 
             Request request = new Request.Builder()
                     .url(BASE_URL + "/token")
-                    .post(RequestBody.create(jsonBody, MediaType.get("application/json")))
+                    .post(RequestBody.create(body, MediaType.get("application/json")))
                     .build();
-            String responseJson = OK_HTTP_UTIL.handleApiRequest(request);
-            MailTmTokenResponse response =
-                    OBJECT_MAPPER.readValue(responseJson, MailTmTokenResponse.class);
 
-            if (response == null || !StringUtils.hasText(response.token())) {
-                throw new RuntimeException("Failed to retrieve mail.tm token");
+            String json = OK_HTTP_UTIL.handleApiRequest(request);
+            MailTmTokenResponse response =
+                    OBJECT_MAPPER.readValue(json, MailTmTokenResponse.class);
+
+            if (!StringUtils.hasText(response.token())) {
+                throw new RuntimeException("Empty mail.tm token");
             }
 
             return response.token();
+
         } catch (Exception e) {
-            throw new RuntimeException("Error while retrieving mail.tm token", e);
+            throw new RuntimeException("Failed to retrieve mail.tm token", e);
+        }
+    }
+
+    // =========================
+    // OTP EXTRACTION (BODY)
+    // =========================
+    @Nullable
+    private String extractCode(String messagesJson, OffsetDateTime date, String token) {
+        try {
+            MailTmMessagesResponse response =
+                    OBJECT_MAPPER.readValue(messagesJson, MailTmMessagesResponse.class);
+
+            if (response == null || response.messages() == null) {
+                return null;
+            }
+
+            for (MailTmMessagesResponse.Message msg : response.messages()) {
+
+                if (msg.createdAt() == null || msg.createdAt().isBefore(date)) {
+                    continue;
+                }
+
+                Request request = new Request.Builder()
+                        .url(BASE_URL + "/messages/" + msg.id())
+                        .header("Authorization", "Bearer " + token)
+                        .build();
+
+                String fullJson = OK_HTTP_UTIL.handleApiRequest(request);
+                MailTmMessageFullResponse full =
+                        OBJECT_MAPPER.readValue(fullJson, MailTmMessageFullResponse.class);
+
+                String body = firstNonBlank(
+                        full.text(),
+                        joinHtml(full.html())
+                );
+
+                if (!StringUtils.hasText(body)) {
+                    continue;
+                }
+
+                var matcher = OTP_PATTERN.matcher(body);
+                if (matcher.find()) {
+                    String code = matcher.group(1);
+                    log.info("OTP retrieved: {}", code);
+                    return code;
+                }
+            }
+
+            return null;
+
+        } catch (Exception e) {
+            log.warn("OTP extraction failed", e);
+            return null;
         }
     }
 
     @Nullable
-    private String extractCode(MailTmMessagesResponse.Message message) {
-        String subject = message.subject();
-        if (!StringUtils.hasText(subject)) {
-            return null;
-        }
-
-        if (subject.matches("^\\d{6}.*")) {
-            String code = subject.substring(0, 6);
-            log.info("OTP retrieved from mail.tm: {}", code);
-            return code;
-        }
-        return "null";
+    private String joinHtml(java.util.List<String> html) {
+        return (html == null || html.isEmpty()) ? null : String.join("\n", html);
     }
 }
