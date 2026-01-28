@@ -25,7 +25,7 @@ public class TikTokAccountFactory {
         RandomUserResponse.RandomResult randomUser = randomUserClient.getRandomUser();
 
 //        String address = mailService.getEmail();
-        String address = "investments.eugene@gmail.com";
+        String address = "javadeveloper.eugene@gmail.com";
         Bio bio = Bio.builder()
                 .name(randomUser.getName())
                 .dob(randomUser.getDob())
