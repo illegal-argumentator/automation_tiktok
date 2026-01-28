@@ -17,7 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import tools.jackson.databind.ObjectMapper;
 
+import java.security.SecureRandom;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import static org.apache.commons.lang3.StringUtils.firstNonBlank;
@@ -35,20 +37,49 @@ class MailTmServiceNew implements MailService {
     private static final Pattern OTP_PATTERN = Pattern.compile("\\b(\\d{6})\\b");
 
     private final MailRepository mailRepository;
+    private static final SecureRandom RANDOM = new SecureRandom();
 
-    // =========================
-    // EMAIL CREATION
-    // =========================
+    private static final List<String> FIRST_NAMES = List.of(
+            "alex", "john", "mike", "tom", "linda",
+            "anna", "kate", "mark", "sam", "james",
+            "dan", "leo", "max", "nick", "oliver"
+    );
+
+    private static final List<String> LAST_NAMES = List.of(
+            "brown", "smith", "miller", "wilson", "taylor",
+            "anderson", "thomas", "walker", "hall", "lee",
+            "young", "king", "wright", "lopez", "martin"
+    );
+
+    public static String generate() {
+        String first = randomFrom(FIRST_NAMES);
+        String last = randomFrom(LAST_NAMES);
+
+        String separator = RANDOM.nextBoolean() ? "." : "";
+
+        String base = first + separator + last;
+
+        if (RANDOM.nextInt(100) < 40) {
+            base += RANDOM.nextInt(90) + 10;
+        }
+
+        return base;
+    }
+
+    private static String randomFrom(List<String> list) {
+        return list.get(RANDOM.nextInt(list.size()));
+    }
+
     @Override
     public String getEmail() {
         String domain = fetchDomain();
-        String email = "user" + System.nanoTime() + "@" + domain;
+        String email = "user" + generate() + "@" + domain;
         String password = "secret123";
 
         createAccount(email, password);
         String token = getToken(email, password);
 
-        var entity = MailEntity.builder()
+        MailEntity entity = MailEntity.builder()
                 .email(email)
                 .password(password)
                 .provider("MAIL_TM")
@@ -62,14 +93,11 @@ class MailTmServiceNew implements MailService {
         return email;
     }
 
-    // =========================
-    // OTP RETRIEVAL (OLD LOGIC + BODY PARSING)
-    // =========================
     @Override
     public String retrieveCodeFromMessage(String email, OffsetDateTime date) {
         log.info("Looking for OTP for email: {}", email);
 
-        var entity = mailRepository.findAll(
+        MailEntity entity = mailRepository.findAll(
                 MailSearch.builder().email(email).build(),
                 Pageable.ofSize(1)
         ).stream().findFirst().orElseThrow();
@@ -101,9 +129,6 @@ class MailTmServiceNew implements MailService {
         throw new RuntimeException("OTP code not received within timeout");
     }
 
-    // =========================
-    // DOMAIN
-    // =========================
     private String fetchDomain() {
         try {
             Request request = new Request.Builder()
@@ -125,9 +150,6 @@ class MailTmServiceNew implements MailService {
         }
     }
 
-    // =========================
-    // ACCOUNT
-    // =========================
     private static void createAccount(String email, String password) {
         try {
             String body = OBJECT_MAPPER.writeValueAsString(
@@ -172,9 +194,6 @@ class MailTmServiceNew implements MailService {
         }
     }
 
-    // =========================
-    // OTP EXTRACTION (BODY)
-    // =========================
     @Nullable
     private String extractCode(String messagesJson, OffsetDateTime date, String token) {
         try {
