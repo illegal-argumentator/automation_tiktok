@@ -62,11 +62,11 @@ public class TikTokActionProxyCommand implements ActionProxyCommand {
             throw new ProxyNotAvailableException("No proxies found");
         }
 
-//        List<Proxy> accessibleProxies = proxyHelper.getAccessibleProxiesWithLimit(proxies, 1);
+        List<Proxy> accessibleProxies = proxyHelper.getAccessibleProxiesWithLimit(proxies, 1);
 //        return accessibleProxies.getFirst();
         String forcedProxyId = "0a996cc5-9287-45a5-a974-191c86e58c44";
 
-        return proxies.stream()
+        return accessibleProxies.stream()
                 .filter(p -> forcedProxyId.equals(p.getId()))
                 .findFirst()
                 .orElseThrow(() ->
