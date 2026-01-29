@@ -73,62 +73,65 @@ class MailTmServiceNew implements MailService {
 
     @Override
     public String getEmail() {
-        String domain = fetchDomain();
-        String email = generate() + "@" + domain;
-        String password = "secret123";
+//        String domain = fetchDomain();
+//        String email = generate() + "@" + domain;
+//        String password = "secret123";
+//
+//        createAccount(email, password);
+//        String token = getToken(email, password);
+//
+//        MailEntity entity = MailEntity.builder()
+//                .email(email)
+//                .password(password)
+//                .provider("MAIL_TM")
+//                .accessToken(token)
+//                .createdAt(OffsetDateTime.now())
+//                .build();
+//
+//        log.info("Saving mail entity: {}", email);
+//        mailRepository.save(entity);
 
-        createAccount(email, password);
-        String token = getToken(email, password);
-
-        MailEntity entity = MailEntity.builder()
-                .email(email)
-                .password(password)
-                .provider("MAIL_TM")
-                .accessToken(token)
-                .createdAt(OffsetDateTime.now())
-                .build();
-
-        log.info("Saving mail entity: {}", email);
-        mailRepository.save(entity);
-
-        return email;
+        return "pilmartin@proton.me";
     }
 
     @Override
-    public String retrieveCodeFromMessage(String email, OffsetDateTime date) {
-        log.info("Looking for OTP for email: {}", email);
+    public String retrieveCodeFromMessage(String email, OffsetDateTime date) throws InterruptedException {
 
-        MailEntity entity = mailRepository.findAll(
-                MailSearch.builder().email(email).build(),
-                Pageable.ofSize(1)
-        ).stream().findFirst().orElseThrow();
-
-        long timeoutMs = 60_000;
-        long start = System.currentTimeMillis();
-
-        while (System.currentTimeMillis() - start < timeoutMs) {
-            try {
-                Request request = new Request.Builder()
-                        .url(BASE_URL + "/messages")
-                        .header("Authorization", "Bearer " + entity.getAccessToken())
-                        .build();
-
-                String messagesJson = OK_HTTP_UTIL.handleApiRequest(request);
-                String code = extractCode(messagesJson, date, entity.getAccessToken());
-
-                if (code != null) {
-                    return code;
-                }
-
-                Thread.sleep(3000);
-
-            } catch (Exception e) {
-                log.warn("Waiting for OTP...", e);
-            }
-        }
-
-        throw new RuntimeException("OTP code not received within timeout");
+        return "";
     }
+//        log.info("Looking for OTP for email: {}", email);
+//
+//        MailEntity entity = mailRepository.findAll(
+//                MailSearch.builder().email(email).build(),
+//                Pageable.ofSize(1)
+//        ).stream().findFirst().orElseThrow();
+//
+//        long timeoutMs = 60_000;
+//        long start = System.currentTimeMillis();
+//
+//        while (System.currentTimeMillis() - start < timeoutMs) {
+//            try {
+//                Request request = new Request.Builder()
+//                        .url(BASE_URL + "/messages")
+//                        .header("Authorization", "Bearer " + entity.getAccessToken())
+//                        .build();
+//
+//                String messagesJson = OK_HTTP_UTIL.handleApiRequest(request);
+//                String code = extractCode(messagesJson, date, entity.getAccessToken());
+//
+//                if (code != null) {
+//                    return code;
+//                }
+//
+//                Thread.sleep(3000);
+//
+//            } catch (Exception e) {
+//                log.warn("Waiting for OTP...", e);
+//            }
+//        }
+//
+//        throw new RuntimeException("OTP code not received within timeout");
+//    }
 
 
     private String fetchDomain() {

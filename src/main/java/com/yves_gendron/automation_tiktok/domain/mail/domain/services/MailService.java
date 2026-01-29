@@ -7,5 +7,5 @@ public interface MailService {
 
     String getEmail();
 
-    String retrieveCodeFromMessage(String email, OffsetDateTime date);
+    String retrieveCodeFromMessage(String email, OffsetDateTime date) throws InterruptedException;
 }
