@@ -91,7 +91,7 @@ class MailTmServiceNew implements MailService {
 //        log.info("Saving mail entity: {}", email);
 //        mailRepository.save(entity);
 
-        return "karabas3245@proton.me";
+        return "kirikulas222@proton.me";
     }
 
     @Override
