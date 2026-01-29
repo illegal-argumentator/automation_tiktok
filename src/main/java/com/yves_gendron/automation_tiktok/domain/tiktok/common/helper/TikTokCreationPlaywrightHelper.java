@@ -126,16 +126,18 @@ public class TikTokCreationPlaywrightHelper {
         handleSendCodeAction(tikTokAccount, page, true);
         waitRandomlyInRange(1200, 1700);
 
-        try {
-            String codeFromGeneratedEmail = TryUtils.tryGet(() -> mailTmService.retrieveCodeFromMessage(tikTokAccount.getEmail(), start), 5,
-                            ThreadUtils.sleepRunnable(8_000, 2000))
-                    .orElseThrow(() -> new TikTokCreationException(tikTokAccount, "No code received in email"));
-            waitRandomlyInRange(1300, 1900);
-            page.fill(CODE_INPUT, codeFromGeneratedEmail);
-            page.locator(CODE_INPUT).pressSequentially(codeFromGeneratedEmail, new Locator.PressSequentiallyOptions().setDelay(random.nextInt(30, 70)));
-        } catch (Exception e) {
-            throw new TikTokCreationException(tikTokAccount, "Error while getting code from email");
-        }
+//        try {
+//            String codeFromGeneratedEmail = TryUtils.tryGet(() -> mailTmService.retrieveCodeFromMessage(tikTokAccount.getEmail(), start), 5,
+//                            ThreadUtils.sleepRunnable(8_000, 2000))
+//                    .orElseThrow(() -> new TikTokCreationException(tikTokAccount, "No code received in email"));
+//            waitRandomlyInRange(1300, 1900);
+//            page.fill(CODE_INPUT, codeFromGeneratedEmail);
+//            page.locator(CODE_INPUT).pressSequentially(codeFromGeneratedEmail, new Locator.PressSequentiallyOptions().setDelay(random.nextInt(30, 70)));
+//        } catch (Exception e) {
+//            throw new TikTokCreationException(tikTokAccount, "Error while getting code from email");
+//        }
+
+        waitSafely(20_000);
 
         waitRandomlyInRange(1800, 2100);
 //        page.click(NEXT_BUTTON);
