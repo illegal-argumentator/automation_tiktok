@@ -20,6 +20,7 @@ import com.yves_gendron.automation_tiktok.system.service.browser.playwright.dto.
 import com.yves_gendron.automation_tiktok.system.service.captcha.tiktokcaptcha.TikTokCaptchaSolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -42,6 +43,7 @@ public class TikTokCreationPlaywrightHelper {
 
     private final PlaywrightWaiter playwrightWaiter;
 
+    @Qualifier("imapMailService")
     private final MailService mailTmService;
 
     private final TikTokCaptchaSolver tikTokCaptchaSolver;

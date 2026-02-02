@@ -25,15 +25,12 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
-@Service
+//@Service
 @RequiredArgsConstructor
 class FirstMailService implements MailService{
     private static final String API_KEY = "UbFp9BEzLme_R6xSm0KVP09Ty0V1OrJ6NaHwZXPCoH3MkNOQ5HXUY26FlaCcZyd4";
     private static final String URL = "https://firstmail.ltd/api/v1/";
     private static final RestTemplate  REST_TEMPLATE = new RestTemplate();
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(
-            "EEE, dd MMM yyyy HH:mm:ss Z"
-    );
     private final MailRepository mailRepository;
 
     @Override
