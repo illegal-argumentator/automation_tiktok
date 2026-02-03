@@ -15,7 +15,7 @@ public class ImapMailService implements MailService {
 
     private final Store imapStore;
 
-    private static final int MAX_RETRIES = 5;
+    private static final int MAX_RETRIES = 12;
     private static final long RETRY_DELAY_MS = 5000;
     private static final int MESSAGE_SEARCH_LIMIT = 100;
 
