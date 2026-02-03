@@ -51,22 +51,22 @@ public class TikTokCreationCommand implements CreationCommand {
 
     @Override
     public void executeAccountsCreation(CreateAccountsRequest createAccountsRequest) {
-        List<Proxy> proxies = proxyService.findAllWithFilter(ProxyFilterRequest.builder()
-                .accountsLinkedLessThan(appProps.getAccountsPerProxy())
-                .verified(true)
-                .build());
+        for (int i = 0; i < createAccountsRequest.getAmount(); i++) {
+            List<Proxy> proxies = proxyService.findAllWithFilter(ProxyFilterRequest.builder()
+                    .accountsLinkedLessThan(appProps.getAccountsPerProxy())
+                    .verified(true)
+                    .build());
 
-        List<TikTokAccount> tikTokAccounts = new ArrayList<>();
-        try {
-            for (int i = 0; i < createAccountsRequest.getAmount(); i++) {
+            List<TikTokAccount> tikTokAccounts = new ArrayList<>();
+            try {
                 tikTokAccounts.add(tikTokAccountFactory.buildRandomTikTokAccount());
+            } catch (Exception e) {
+                throw new TikTokCreationException(e.getMessage());
             }
-        } catch (Exception e) {
-            throw new TikTokCreationException(e.getMessage());
-        }
 
-        tikTokAccounts = tikTokService.saveAllOrThrow(tikTokAccounts);
-        processAccountsCreation(proxies, tikTokAccounts, createAccountsRequest.getAmount());
+            tikTokAccounts = tikTokService.saveAllOrThrow(tikTokAccounts);
+            processAccountsCreation(proxies, tikTokAccounts, createAccountsRequest.getAmount());
+        }
     }
 
     private void  processAccountsCreation(List<Proxy> proxies, List<TikTokAccount> tikTokAccounts, int createAccountsLimit) {
