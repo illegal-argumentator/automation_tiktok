@@ -69,7 +69,7 @@ public class TikTokCreationCommand implements CreationCommand {
                 processAccountsCreation(proxies, tikTokAccounts, 1);
             } catch (Exception e) {
                 log.warn(e.getMessage());
-                tikTokService.update(tikTokAccounts.getFirst().getId(), UpdateAccountRequest.builder().status(Status.FAILED).build());
+                tikTokService.update(tikTokAccounts.getFirst().getId(), UpdateAccountRequest.builder().status(Status.FAILED).executionMessage(e.getMessage()).build());
             }
         }
     }
