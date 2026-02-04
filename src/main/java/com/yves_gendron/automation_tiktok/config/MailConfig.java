@@ -5,7 +5,6 @@ import jakarta.mail.Session;
 import jakarta.mail.Store;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -20,37 +19,22 @@ public class MailConfig {
 
     @Bean
     public Store getImapStore() {
-        Properties props = getProperties();
+        Properties props = new Properties();
+        props.put("mail.store.protocol", mailProps.getProtocol());
+        props.put("mail.imap.host", mailProps.getHost());
+        props.put("mail.imap.port", mailProps.getPort());
+        props.put("mail.imap.ssl.enable", mailProps.getSsl());
 
         Session session = Session.getInstance(props);
 
         try {
-            Store store = session.getStore("imap");
-            store.connect(
-                    "mail.privateemail.com",
-                    "mormul.mail@formormul.xyz",
-                    mailProps.getPassword()
-            );
+            Store store = session.getStore(mailProps.getProtocol());
+            store.connect(mailProps.getUsername(), mailProps.getPassword());
             return store;
         } catch (MessagingException e) {
-            log.error("IMAP connection failed", e);
-            throw new RuntimeException(e);
+            log.error("IMAP connection failed: {}", e.getMessage());
+            throw new RuntimeException(e.getMessage());
         }
-    }
-
-    @NotNull
-    private static Properties getProperties() {
-        Properties props = new Properties();
-        props.put("mail.store.protocol", "imap");
-        props.put("mail.imap.host", "mail.privateemail.com");
-        props.put("mail.imap.port", "993");
-        props.put("mail.imap.ssl.enable", "true");
-        props.put("mail.imap.auth", "true");
-        props.put("mail.imap.starttls.enable", "false");
-        props.put("mail.imap.ssl.trust", "mail.privateemail.com");
-        props.put("mail.imap.auth.plain.disable", "false");
-        props.put("mail.debug", "true");
-        return props;
     }
 
 }
