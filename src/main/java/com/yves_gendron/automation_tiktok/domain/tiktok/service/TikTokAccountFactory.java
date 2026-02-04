@@ -8,6 +8,7 @@ import com.yves_gendron.automation_tiktok.domain.tiktok.model.TikTokAccount;
 import com.yves_gendron.automation_tiktok.system.client.randomuser.RandomUserClient;
 import com.yves_gendron.automation_tiktok.system.client.randomuser.common.dto.RandomUserResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -20,13 +21,14 @@ public class TikTokAccountFactory {
 
     private final AppProps appProps;
 
-    private static final String NOMAD_DOMAIN = "nomad4.tech";
+    @Value("${app.mail.host}")
+    private String APP_MAIL_HOST;
 
     public TikTokAccount buildRandomTikTokAccount() {
         RandomUserResponse.RandomResult randomUser = randomUserClient.getRandomUser();
 
         String username = randomUser.getEmail().substring(0, randomUser.getEmail().indexOf('@'));
-        String address = username + String.valueOf(UUID.randomUUID()).substring(0, 4) + "@" + NOMAD_DOMAIN;
+        String address = username + String.valueOf(UUID.randomUUID()).substring(0, 4) + "@" + APP_MAIL_HOST;
         Bio bio = Bio.builder()
                 .name(randomUser.getName())
                 .dob(randomUser.getDob())
