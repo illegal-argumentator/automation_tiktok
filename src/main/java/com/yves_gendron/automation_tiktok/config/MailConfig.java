@@ -20,21 +20,32 @@ public class MailConfig {
     @Bean
     public Store getImapStore() {
         Properties props = new Properties();
-        props.put("mail.store.protocol", mailProps.getProtocol());
-        props.put("mail.imap.host", mailProps.getHost());
-        props.put("mail.imap.port", mailProps.getPort());
-        props.put("mail.imap.ssl.enable", mailProps.getSsl());
+
+        props.put("mail.store.protocol", "imap");
+
+        props.put("mail.imap.host", "mail.privateemail.com");
+        props.put("mail.imap.port", "993");
+        props.put("mail.imap.ssl.enable", "true");
+        props.put("mail.imap.auth", "true");
+
+        props.put("mail.imap.starttls.enable", "false");
+        props.put("mail.imap.ssl.trust", "mail.privateemail.com");
 
         Session session = Session.getInstance(props);
 
         try {
-            Store store = session.getStore(mailProps.getProtocol());
-            store.connect(mailProps.getUsername(), mailProps.getPassword());
+            Store store = session.getStore("imap");
+
+            store.connect(
+                    "mail.privateemail.com",
+                    "mormul.mail@formormul.xyz",
+                    mailProps.getPassword()
+            );
+
             return store;
         } catch (MessagingException e) {
-            log.error("IMAP connection failed: {}", e.getMessage());
-            throw new RuntimeException(e.getMessage());
+            log.error("IMAP connection failed", e);
+            throw new RuntimeException(e);
         }
     }
-
 }
