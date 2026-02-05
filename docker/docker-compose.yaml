@@ -4,11 +4,10 @@ networks:
   yves-gendron-prod:
 
 services:
-  app-service:
+  app-yves-gendron:
     build:
       context: ..
       dockerfile: Dockerfile
-    container_name: app-yves-gendron
     restart: unless-stopped
     networks:
       - yves-gendron-prod
@@ -29,7 +28,6 @@ services:
 
   postgres_yves_gendron:
     image: postgres:16
-    container_name: postgres-db-yves-gendron
     restart: unless-stopped
     networks:
       - yves-gendron-prod
@@ -44,7 +42,6 @@ services:
 
   nstbrowserless_yves_gendron:
     image: nstbrowser/browserless:140-202511181200.v2
-    container_name: nstbrowserless-yves-gendron
     restart: unless-stopped
     networks:
       - yves-gendron-prod
