@@ -8,7 +8,7 @@ import com.yves_gendron.automation_tiktok.domain.tiktok.model.TikTokAccount;
 import com.yves_gendron.automation_tiktok.domain.tiktok.model.embedded.Workflow;
 import com.yves_gendron.automation_tiktok.domain.tiktok.service.TikTokCommandPort;
 import com.yves_gendron.automation_tiktok.domain.tiktok.service.TikTokQueryPort;
-import com.yves_gendron.automation_tiktok.system.controller.dto.ActionRequest;
+import com.yves_gendron.automation_tiktok.system.controller.dto.VideoActionRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,7 +41,7 @@ public class VideoWorkflowOrchestrator {
                     log.info("Started uploading video for {}.", tikTokAccount.getEmail());
 
                     ActionCommand actionCommand = actionActionFactory.getActionCommand(platform, action);
-                    actionCommand.executeAction(tikTokAccount.getId(), action, ActionRequest.builder().platform(platform).build());
+                    actionCommand.executeAction(tikTokAccount.getId(), action, VideoActionRequest.builder().platform(platform).build());
                 } finally {
                     tikTokCommandPort.clearWorkflow(tikTokAccount.getId());
                 }
