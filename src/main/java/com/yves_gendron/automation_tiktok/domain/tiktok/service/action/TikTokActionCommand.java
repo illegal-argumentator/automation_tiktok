@@ -56,19 +56,20 @@ public abstract class TikTokActionCommand implements ActionCommand {
     }
 
     protected void initializeNstAndStartAction(TikTokAccount tikTokAccount, ActionRequest actionRequest) {
-        // TODO should be refactored
-        if (actionRequest instanceof VideoActionRequest request) {
-            if (request.getUploadAt() != null) {
-                Workflow workflow = new Workflow();
-                workflow.setVideoSetting(new Workflow.VideoSetting(request.getUploadAt()));
-                tikTokService.update(tikTokAccount.getId(), UpdateAccountRequest.builder().workflow(workflow).build());
-
-                return;
-            }
-        }
 
         PlaywrightDto playwrightDto = PlaywrightDto.builder().autoCloseables(List.of()).build();
         try {
+            // TODO should be refactored
+            if (actionRequest instanceof VideoActionRequest request) {
+                if (request.getUploadAt() != null) {
+                    Workflow workflow = new Workflow();
+                    workflow.setVideoSetting(new Workflow.VideoSetting(request.getUploadAt()));
+                    tikTokService.update(tikTokAccount.getId(), UpdateAccountRequest.builder().workflow(workflow).build());
+
+                    return;
+                }
+            }
+
             playwrightDto = playwrightInitializer.initBrowser(tikTokAccount.getNstProfileId());
 
             Page page = playwrightDto.getPage();
