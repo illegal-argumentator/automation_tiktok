@@ -23,7 +23,7 @@ services:
       NST_BROWSER_API_KEY: ${NST_TOKEN}
     depends_on:
       - postgres_yves_gendron
-      - nstbrowserless_gendron
+      - nstbrowserless_yves_gendron
     ports:
       - "${API_PORT}:8080"
 
@@ -42,7 +42,7 @@ services:
     volumes:
       - pg_yves_gendron_data:/var/lib/postgresql/data
 
-  nstbrowserless_gendron:
+  nstbrowserless_yves_gendron:
     image: nstbrowser/browserless:140-202511181200.v2
     container_name: nstbrowserless-yves-gendron
     restart: unless-stopped
