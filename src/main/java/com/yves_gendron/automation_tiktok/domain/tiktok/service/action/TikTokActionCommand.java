@@ -14,10 +14,12 @@ import com.yves_gendron.automation_tiktok.domain.tiktok.common.exception.TikTokA
 import com.yves_gendron.automation_tiktok.domain.tiktok.common.helper.TikTokActionPlaywrightHelper;
 import com.yves_gendron.automation_tiktok.domain.tiktok.common.helper.TikTokCreationPlaywrightHelper;
 import com.yves_gendron.automation_tiktok.domain.tiktok.model.TikTokAccount;
+import com.yves_gendron.automation_tiktok.domain.tiktok.model.embedded.Workflow;
 import com.yves_gendron.automation_tiktok.domain.tiktok.service.TikTokService;
 import com.yves_gendron.automation_tiktok.domain.tiktok.web.dto.UpdateAccountRequest;
 import com.yves_gendron.automation_tiktok.system.client.nst.common.exception.NstBrowserException;
 import com.yves_gendron.automation_tiktok.system.controller.dto.ActionRequest;
+import com.yves_gendron.automation_tiktok.system.controller.dto.VideoActionRequest;
 import com.yves_gendron.automation_tiktok.system.service.browser.playwright.PlaywrightInitializer;
 import com.yves_gendron.automation_tiktok.system.service.browser.playwright.PlaywrightWaiter;
 import com.yves_gendron.automation_tiktok.system.service.browser.playwright.dto.PlaywrightDto;
@@ -54,6 +56,17 @@ public abstract class TikTokActionCommand implements ActionCommand {
     }
 
     protected void initializeNstAndStartAction(TikTokAccount tikTokAccount, ActionRequest actionRequest) {
+        // TODO should be refactored
+        if (actionRequest instanceof VideoActionRequest request) {
+            if (request.getUploadAt() != null) {
+                Workflow workflow = new Workflow();
+                workflow.setVideoSetting(new Workflow.VideoSetting(request.getUploadAt()));
+                tikTokService.update(tikTokAccount.getId(), UpdateAccountRequest.builder().workflow(workflow).build());
+
+                return;
+            }
+        }
+
         PlaywrightDto playwrightDto = PlaywrightDto.builder().autoCloseables(List.of()).build();
         try {
             playwrightDto = playwrightInitializer.initBrowser(tikTokAccount.getNstProfileId());

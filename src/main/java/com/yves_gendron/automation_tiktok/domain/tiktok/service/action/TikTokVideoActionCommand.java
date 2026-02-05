@@ -13,7 +13,6 @@ import com.yves_gendron.automation_tiktok.domain.tiktok.common.exception.TikTokC
 import com.yves_gendron.automation_tiktok.domain.tiktok.common.helper.TikTokActionPlaywrightHelper;
 import com.yves_gendron.automation_tiktok.domain.tiktok.common.helper.TikTokCreationPlaywrightHelper;
 import com.yves_gendron.automation_tiktok.domain.tiktok.model.TikTokAccount;
-import com.yves_gendron.automation_tiktok.domain.tiktok.model.embedded.Workflow;
 import com.yves_gendron.automation_tiktok.domain.tiktok.service.TikTokService;
 import com.yves_gendron.automation_tiktok.domain.tiktok.web.dto.UpdateAccountRequest;
 import com.yves_gendron.automation_tiktok.system.controller.dto.ActionRequest;
@@ -73,10 +72,6 @@ public class TikTokVideoActionCommand extends TikTokActionCommand {
 
         VideoActionRequest videoActionRequest = (VideoActionRequest) actionRequest;
 
-        if (setUpWorkflow(tikTokAccount, videoActionRequest)) {
-            return;
-        }
-
         Page page = playwrightDto.getPage();
         uploadVideo(tikTokAccount, videoActionRequest, page);
 
@@ -122,18 +117,6 @@ public class TikTokVideoActionCommand extends TikTokActionCommand {
             }
         });
         ThreadUtils.sleep(1500, 2500);
-    }
-
-    private boolean setUpWorkflow(TikTokAccount account, VideoActionRequest request) {
-        if (request.getUploadAt() != null) {
-            Workflow workflow = new Workflow();
-            workflow.setVideoSetting(new Workflow.VideoSetting(request.getUploadAt()));
-            tikTokService.update(account.getId(), UpdateAccountRequest.builder().workflow(workflow).build());
-
-            return true;
-        }
-
-        return false;
     }
 
     private void uploadVideo(TikTokAccount tikTokAccount, VideoActionRequest videoActionRequest, Page page) {
