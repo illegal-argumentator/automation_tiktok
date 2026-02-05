@@ -41,7 +41,7 @@ public class VideoWorkflowOrchestrator {
                     log.info("Started uploading video for {}.", tikTokAccount.getEmail());
 
                     ActionCommand actionCommand = actionActionFactory.getActionCommand(platform, action);
-                    actionCommand.executeAction(tikTokAccount.getId(), action, VideoActionRequest.builder().platform(platform).build());
+                    actionCommand.executeAction(tikTokAccount.getId(), action, VideoActionRequest.builder().videoId(tikTokAccount.getWorkflow().getVideoSetting().getVideoId()).platform(platform).build());
                 } finally {
                     tikTokCommandPort.clearWorkflow(tikTokAccount.getId());
                 }

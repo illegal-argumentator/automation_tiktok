@@ -23,6 +23,8 @@ public class Workflow {
     @NoArgsConstructor
     public static class VideoSetting {
 
+        private String videoId;
+
         private LocalDateTime uploadAt;
 
     }

@@ -63,7 +63,7 @@ public abstract class TikTokActionCommand implements ActionCommand {
             if (actionRequest instanceof VideoActionRequest request) {
                 if (request.getUploadAt() != null) {
                     Workflow workflow = new Workflow();
-                    workflow.setVideoSetting(new Workflow.VideoSetting(request.getUploadAt()));
+                    workflow.setVideoSetting(new Workflow.VideoSetting(request.getVideoId(), request.getUploadAt()));
                     tikTokService.update(tikTokAccount.getId(), UpdateAccountRequest.builder().workflow(workflow).build());
 
                     return;
