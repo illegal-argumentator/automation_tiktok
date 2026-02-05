@@ -42,7 +42,7 @@ services:
     volumes:
       - pg_yves_gendron_data:/var/lib/postgresql/data
 
-  nstbrowserless_00:
+  nstbrowserless_gendron:
     image: nstbrowser/browserless:140-202511181200.v2
     container_name: nstbrowserless-yves-gendron
     restart: unless-stopped
