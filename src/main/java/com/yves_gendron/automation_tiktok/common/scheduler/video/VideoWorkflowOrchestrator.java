@@ -51,7 +51,7 @@ public class VideoWorkflowOrchestrator {
 
     private boolean isReadyForVideoUpload(TikTokAccount account) {
         Workflow.VideoSetting videoSetting = account.getWorkflow().getVideoSetting();
-        return Math.abs(Duration.between(LocalDateTime.now(), videoSetting.getUploadAt()).toMinutes()) <= 1;
+        return Math.abs(Duration.between(LocalDateTime.now(), videoSetting.getUploadAt()).toMinutes()) <= 2;
     }
 
 }
