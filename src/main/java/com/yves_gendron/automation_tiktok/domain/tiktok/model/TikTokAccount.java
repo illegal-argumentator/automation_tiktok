@@ -3,6 +3,7 @@ package com.yves_gendron.automation_tiktok.domain.tiktok.model;
 import com.yves_gendron.automation_tiktok.common.dto.BaseAccount;
 import com.yves_gendron.automation_tiktok.common.type.Action;
 import com.yves_gendron.automation_tiktok.domain.proxy.model.Proxy;
+import com.yves_gendron.automation_tiktok.domain.tiktok.model.embedded.Workflow;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,6 +33,9 @@ public class TikTokAccount extends BaseAccount {
     private String accountLink;
 
     private int likedPosts;
+
+    @Embedded
+    private Workflow workflow;
 
     @ManyToOne
     @JoinColumn(name = "proxy_id")

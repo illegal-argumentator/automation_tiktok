@@ -13,7 +13,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-public class TikTokService {
+public class TikTokService implements TikTokQueryPort, TikTokCommandPort {
 
     private final TikTokRepository tikTokRepository;
 
@@ -60,6 +60,7 @@ public class TikTokService {
         Optional.ofNullable(updateAccountRequest.getPublishedPosts()).ifPresent(tikTokAccount::setPublishedPosts);
         Optional.ofNullable(updateAccountRequest.getAccountLink()).ifPresent(tikTokAccount::setAccountLink);
         Optional.ofNullable(updateAccountRequest.getAvatarLink()).ifPresent(tikTokAccount::setAvatarLink);
+        Optional.ofNullable(updateAccountRequest.getWorkflow()).ifPresent(tikTokAccount::setWorkflow);
 
         tikTokRepository.save(tikTokAccount);
     }
@@ -87,5 +88,19 @@ public class TikTokService {
         return tikTokAccounts.stream()
                 .filter(acc -> !existingEmails.contains(acc.getEmail()))
                 .toList();
+    }
+
+    @Override
+    public List<TikTokAccount> getAllWithVideoWorkflow() {
+        return tikTokRepository.findAllByWorkflow_VideoSetting_UploadAtIsNotNull();
+    }
+
+    @Override
+    public void clearWorkflow(String id) {
+        TikTokAccount account = findById(id);
+
+        account.setWorkflow(null);
+
+        tikTokRepository.save(account);
     }
 }

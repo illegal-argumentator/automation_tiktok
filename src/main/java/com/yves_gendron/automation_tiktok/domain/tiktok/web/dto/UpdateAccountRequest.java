@@ -5,6 +5,7 @@ import com.yves_gendron.automation_tiktok.common.type.Status;
 import com.yves_gendron.automation_tiktok.domain.proxy.model.Proxy;
 import com.yves_gendron.automation_tiktok.domain.tiktok.model.embedded.Dob;
 import com.yves_gendron.automation_tiktok.domain.tiktok.model.embedded.Name;
+import com.yves_gendron.automation_tiktok.domain.tiktok.model.embedded.Workflow;
 import lombok.Builder;
 import lombok.Data;
 
@@ -45,4 +46,6 @@ public class UpdateAccountRequest {
     private String accountLink;
 
     private String avatarLink;
+
+    private Workflow workflow;
 }

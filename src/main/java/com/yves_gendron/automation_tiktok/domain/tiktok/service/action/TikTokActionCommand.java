@@ -48,12 +48,12 @@ public abstract class TikTokActionCommand implements ActionCommand {
     public void executeAction(String accountId, Action action, ActionRequest actionRequest) {
         TikTokAccount tikTokAccount = getAccountIfNotInActionAndNotInProgress(accountId);
         tikTokService.update(tikTokAccount.getId(), UpdateAccountRequest.builder().action(action).build());
-        initializeNstAndStartAccountCreation(tikTokAccount, actionRequest);
+        initializeNstAndStartAction(tikTokAccount, actionRequest);
         tearDownAccountAction(tikTokAccount, actionRequest);
         log.info("Successfully acted");
     }
 
-    protected void initializeNstAndStartAccountCreation(TikTokAccount tikTokAccount, ActionRequest actionRequest) {
+    protected void initializeNstAndStartAction(TikTokAccount tikTokAccount, ActionRequest actionRequest) {
         PlaywrightDto playwrightDto = PlaywrightDto.builder().autoCloseables(List.of()).build();
         try {
             playwrightDto = playwrightInitializer.initBrowser(tikTokAccount.getNstProfileId());
