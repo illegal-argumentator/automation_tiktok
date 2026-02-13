@@ -3,6 +3,7 @@ package com.yves_gendron.automation_tiktok.system.client.randomuser.common.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yves_gendron.automation_tiktok.domain.tiktok.model.embedded.Dob;
 import com.yves_gendron.automation_tiktok.domain.tiktok.model.embedded.Name;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
@@ -14,6 +15,7 @@ public class RandomUserResponse {
     private List<RandomResult> results;
 
     @Data
+    @Builder
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RandomResult {
 
@@ -39,6 +41,7 @@ public class RandomUserResponse {
         }
 
         @Data
+        @Builder
         @JsonIgnoreProperties(ignoreUnknown = true)
         public static class Picture {
 

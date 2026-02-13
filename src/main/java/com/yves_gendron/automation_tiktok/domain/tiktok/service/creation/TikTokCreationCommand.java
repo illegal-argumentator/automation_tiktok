@@ -66,7 +66,6 @@ public class TikTokCreationCommand implements CreationCommand {
         }
 
         tikTokAccounts = tikTokService.saveAllOrThrow(tikTokAccounts);
-        System.out.println(tikTokAccounts);
         processAccountsCreation(proxies, tikTokAccounts, createAccountsRequest.getAmount());
     }
 
