@@ -22,11 +22,11 @@ public class ProxyVerifier {
 
     private static final String IF_CONFIG_BASE_URL = "https://ifconfig.me/ip";
 
-    public boolean verifyProxy(Proxy proxy) {
-        int attempts = 1, maxVerifyTries = 3;
+    public boolean verifyProxy(Proxy proxy, int retries) {
+        int attempts = 1;
         try {
-            for (int i = 0; i < maxVerifyTries; i++) {
-                log.info("Trying to verify proxy {} ... {}", proxy.getUsername(), "%d/%d".formatted(attempts++, maxVerifyTries));
+            for (int i = 0; i < retries; i++) {
+                log.info("Trying to verify proxy {} ... {}", proxy.getUsername(), "%d/%d".formatted(attempts++, retries));
                 boolean validProxy = processProxyValidation(proxy);
                 if (validProxy) {
                     return true;
@@ -41,6 +41,12 @@ public class ProxyVerifier {
         log.warn("Failed proxy verification {}", proxy.getUsername());
         return false;
     }
+
+    public boolean verifyProxy(Proxy proxy) {
+        return verifyProxy(proxy, 3);
+    }
+
+
 
     private boolean processProxyValidation(Proxy proxy) {
         OkHttpClient client = new OkHttpClient.Builder()

@@ -37,13 +37,12 @@ public class ProxyHelper {
                 break;
             }
 
-
-
             if (proxy.getAccountsLinked() < appProps.getAccountsPerProxy()) {
                 boolean verifiedProxy = updateProxyVerification(proxy);
                 if (!verifiedProxy) {
                     continue;
                 }
+
                 accessibleProxies.add(proxy);
                 continue;
             }
@@ -77,7 +76,7 @@ public class ProxyHelper {
     }
 
     private boolean updateProxyVerification(Proxy proxy) {
-        boolean verifiedProxy = proxyVerifier.verifyProxy(proxy);
+        boolean verifiedProxy = proxyVerifier.verifyProxy(proxy, 1);
 
         if (!verifiedProxy) {
             if (proxy.isVerified()) {
