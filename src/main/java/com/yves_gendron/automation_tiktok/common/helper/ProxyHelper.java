@@ -100,7 +100,7 @@ public class ProxyHelper {
             String PROXY_ID_PARAMETER = "uuid";
             log.info("Rotating proxy: {}", rotationLink.substring(rotationLink.indexOf(PROXY_ID_PARAMETER) + PROXY_ID_PARAMETER.length() + 1));
         } catch (IOException e) {
-            log.error("NstBrowserException: {}", e.getMessage());
+            log.error("{}", e.getMessage());
         }
     }
 }

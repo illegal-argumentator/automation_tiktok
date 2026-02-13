@@ -51,6 +51,7 @@ public class TikTokCreationCommand implements CreationCommand {
 
     @Override
     public void executeAccountsCreation(CreateAccountsRequest createAccountsRequest) {
+        System.out.println("Account creaion");
         List<Proxy> proxies = proxyService.findAllWithFilter(ProxyFilterRequest.builder()
                 .accountsLinkedLessThan(appProps.getAccountsPerProxy())
                 .verified(true)
