@@ -51,7 +51,6 @@ public class TikTokCreationCommand implements CreationCommand {
 
     @Override
     public void executeAccountsCreation(CreateAccountsRequest createAccountsRequest) {
-        System.out.println("Account creaion");
         List<Proxy> proxies = proxyService.findAllWithFilter(ProxyFilterRequest.builder()
                 .accountsLinkedLessThan(appProps.getAccountsPerProxy())
                 .verified(true)
@@ -67,10 +66,11 @@ public class TikTokCreationCommand implements CreationCommand {
         }
 
         tikTokAccounts = tikTokService.saveAllOrThrow(tikTokAccounts);
+        System.out.println(tikTokAccounts);
         processAccountsCreation(proxies, tikTokAccounts, createAccountsRequest.getAmount());
     }
 
-    private void  processAccountsCreation(List<Proxy> proxies, List<TikTokAccount> tikTokAccounts, int createAccountsLimit) {
+    private void processAccountsCreation(List<Proxy> proxies, List<TikTokAccount> tikTokAccounts, int createAccountsLimit) {
         int createdCount = 0;
 
         for (Proxy proxy : proxies) {

@@ -32,9 +32,7 @@ public class TikTokCreationProxyCommand implements CreationProxyCommand {
         }
 
         try {
-            System.out.println("Before proxy check");
             proxyHelper.getAccessibleProxiesWithLimit(proxies, createAccountsRequest.getAmount());
-            System.out.println("After proxy check");
         } catch (Exception e) {
             log.error(e.getMessage(),e);
             throw new TikTokCreationException(e.getMessage());

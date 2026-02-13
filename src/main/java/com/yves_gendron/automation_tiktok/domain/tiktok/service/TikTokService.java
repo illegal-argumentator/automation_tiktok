@@ -37,7 +37,13 @@ public class TikTokService implements TikTokQueryPort, TikTokCommandPort {
             throw new ApplicationAlreadyInProgressException("Other accounts currently creating");
         }
 
-        return tikTokRepository.saveAllAndFlush(retrieveNotExistingAccounts(tikTokAccounts));
+        List<TikTokAccount> savedAccounts = tikTokRepository.saveAllAndFlush(tikTokAccounts);
+
+        if (savedAccounts.isEmpty()) {
+            throw new IllegalArgumentException("Accounts are no being saved.");
+        }
+
+        return savedAccounts;
     }
 
     public void update(String id, UpdateAccountRequest updateAccountRequest) {
@@ -72,22 +78,6 @@ public class TikTokService implements TikTokQueryPort, TikTokCommandPort {
     public void delete(String accountId) {
         TikTokAccount tikTokAccount = findById(accountId);
         tikTokRepository.delete(tikTokAccount);
-    }
-
-    private List<TikTokAccount> retrieveNotExistingAccounts(List<TikTokAccount> tikTokAccounts) {
-        List<String> emails = tikTokAccounts.stream()
-                .map(TikTokAccount::getEmail)
-                .filter(Objects::nonNull)
-                .toList();
-
-        Set<String> existingEmails = new HashSet<>(tikTokRepository.findAllByEmailIn(emails)
-                .stream()
-                .map(TikTokAccount::getEmail)
-                .toList());
-
-        return tikTokAccounts.stream()
-                .filter(acc -> !existingEmails.contains(acc.getEmail()))
-                .toList();
     }
 
     @Override
