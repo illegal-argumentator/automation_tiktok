@@ -76,7 +76,7 @@ public class ProxyHelper {
     }
 
     private boolean updateProxyVerification(Proxy proxy) {
-        boolean verifiedProxy = proxyVerifier.verifyProxy(proxy, 1);
+        boolean verifiedProxy = proxyVerifier.verifyProxy(proxy);
 
         if (!verifiedProxy) {
             if (proxy.isVerified()) {
