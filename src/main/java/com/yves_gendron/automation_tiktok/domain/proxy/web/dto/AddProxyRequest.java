@@ -17,10 +17,10 @@ public class AddProxyRequest {
     @Data
     public static class ProxyRequest {
 
-        @NotBlank(message = "Username is required")
+//        @NotBlank(message = "Username is required")
         private String username;
 
-        @NotBlank(message = "Password is required")
+//        @NotBlank(message = "Password is required")
         private String password;
 
         @NotBlank(message = "Host is required")
@@ -29,7 +29,7 @@ public class AddProxyRequest {
         @NotNull(message = "Port is required")
         private Integer port;
 
-        @NotNull(message = "Rotation link is required")
+//        @NotNull(message = "Rotation link is required")
         private String autoRotationLink;
     }
 }
