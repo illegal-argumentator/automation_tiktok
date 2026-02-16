@@ -57,7 +57,7 @@ public class TikTokCreationCommand implements CreationCommand {
                 TikTokAccount tikTokAccount = tikTokService.save(tikTokAccountFactory.buildRandomTikTokAccount());
                 processAccountsCreation(proxies.getFirst(), tikTokAccount);
             } catch (Exception e) {
-                throw new TikTokCreationException(e.getMessage());
+                log.error(e.getMessage());
             }
         }
     }
