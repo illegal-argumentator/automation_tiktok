@@ -19,7 +19,7 @@ public class CreateAccountsRequest {
     private Platform platform;
 
     @Min(value = 1, message = "Required minimum 1 account to create")
-    @Max(value = 1, message = "Maximum 1 account to create")
+    @Max(value = 10, message = "Maximum 10 accounts to create")
     private int amount;
 
 }
