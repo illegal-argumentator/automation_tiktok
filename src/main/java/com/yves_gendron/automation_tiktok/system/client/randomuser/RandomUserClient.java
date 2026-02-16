@@ -40,7 +40,6 @@ public class RandomUserClient {
             String responseBody = okHttpHelper.buildResponseBodyOrThrow(response, "RandomUserApi: " + response.code() + " - " + response.message());
             response.close();
 
-            System.out.println(responseBody);
             List<NinjaRandomResponse.NinjaUser> data = objectMapper.readValue(responseBody, new TypeReference<>() {
             });
 
