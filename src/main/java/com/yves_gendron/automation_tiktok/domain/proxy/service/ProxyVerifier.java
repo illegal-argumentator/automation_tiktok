@@ -46,8 +46,6 @@ public class ProxyVerifier {
         return verifyProxy(proxy, 3);
     }
 
-
-
     private boolean processProxyValidation(Proxy proxy) {
         OkHttpClient client = new OkHttpClient.Builder()
                 .callTimeout(10, TimeUnit.SECONDS)

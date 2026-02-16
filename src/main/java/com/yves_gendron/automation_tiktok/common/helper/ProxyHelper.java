@@ -62,9 +62,9 @@ public class ProxyHelper {
             accessibleProxies.add(proxy);
         }
 
-        if (retrieveMaximumProxyUsage(accessibleProxies) < limit) {
-            throw new ProxyNotAvailableException("Not enough accessible proxies");
-        }
+//        if (retrieveMaximumProxyUsage(accessibleProxies) < limit) {
+//            throw new ProxyNotAvailableException("Not enough accessible proxies");
+//        }
 
         return accessibleProxies;
     }
