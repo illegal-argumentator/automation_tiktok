@@ -4,7 +4,6 @@ import com.microsoft.playwright.PlaywrightException;
 import com.yves_gendron.automation_tiktok.common.command.CreationCommand;
 import com.yves_gendron.automation_tiktok.common.type.Platform;
 import com.yves_gendron.automation_tiktok.common.type.Status;
-import com.yves_gendron.automation_tiktok.config.AppProps;
 import com.yves_gendron.automation_tiktok.domain.proxy.model.Proxy;
 import com.yves_gendron.automation_tiktok.domain.proxy.service.ProxyService;
 import com.yves_gendron.automation_tiktok.domain.proxy.web.dto.ProxyFilterRequest;
@@ -25,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.yves_gendron.automation_tiktok.domain.tiktok.common.constants.TikTokConstants.TIKTOK_BASE_URL;
@@ -47,54 +45,42 @@ public class TikTokCreationCommand implements CreationCommand {
 
     private final ProxyService proxyService;
 
-    private final AppProps appProps;
-
     @Override
     public void executeAccountsCreation(CreateAccountsRequest createAccountsRequest) {
         for (int i = 0; i < createAccountsRequest.getAmount(); i++) {
             List<Proxy> proxies = proxyService.findAllWithFilter(ProxyFilterRequest.builder()
-                    .accountsLinkedLessThan(appProps.getAccountsPerProxy())
+//                    .accountsLinkedLessThan(appProps.getAccountsPerProxy())
                     .verified(true)
                     .build());
 
-            List<TikTokAccount> tikTokAccounts = new ArrayList<>();
             try {
-                tikTokAccounts.add(tikTokAccountFactory.buildRandomTikTokAccount());
-                tikTokAccounts = tikTokService.saveAllOrThrow(tikTokAccounts);
-                processAccountsCreation(proxies, tikTokAccounts, createAccountsRequest.getAmount());
+                TikTokAccount tikTokAccount = tikTokService.save(tikTokAccountFactory.buildRandomTikTokAccount());
+                processAccountsCreation(proxies.getFirst(), tikTokAccount);
             } catch (Exception e) {
                 throw new TikTokCreationException(e.getMessage());
             }
         }
     }
 
-    private void processAccountsCreation(List<Proxy> proxies, List<TikTokAccount> tikTokAccounts, int createAccountsLimit) {
-        int createdCount = 0;
+    private void processAccountsCreation(Proxy proxy, TikTokAccount tikTokAccount) {
+        PlaywrightDto playwrightDto = PlaywrightDto.builder().autoCloseables(List.of()).build();
 
-        for (Proxy proxy : proxies) {
-            while (canCreateMoreAccounts(proxy.getAccountsLinked(), createdCount, createAccountsLimit)) {
-                TikTokAccount tikTokAccount = tikTokAccounts.get(createdCount);
-                PlaywrightDto playwrightDto = PlaywrightDto.builder().autoCloseables(List.of()).build();
+        try {
+            CreateProfileResponse createProfileResponse = nstBrowserClient.createProfile(buildProfileName(tikTokAccount), proxy);
 
-                try {
-                    CreateProfileResponse createProfileResponse = nstBrowserClient.createProfile(buildProfileName(tikTokAccount), proxy);
+            playwrightDto = playwrightInitializer.initBrowser(createProfileResponse.getData().getProfileId());
+            initAccountWithStarterFields(createProfileResponse.getData().getProfileId(), tikTokAccount, proxy);
 
-                    playwrightDto = playwrightInitializer.initBrowser(createProfileResponse.getData().getProfileId());
-                    initAccountWithStarterFields(createProfileResponse.getData().getProfileId(), tikTokAccount, proxy);
-
-                    tikTokCreationPlaywrightHelper.processSignUp(playwrightDto, tikTokAccount);
-                    finishAccountCreation(tikTokAccount);
-                } catch (PlaywrightException e) {
-                    log.error(e.getMessage());
-                    throw new TikTokCreationException(tikTokAccount, "Unstable proxy connection, couldn't access the element");
-                } catch (NstBrowserException e) {
-                    log.error(e.getMessage());
-                    throw new TikTokCreationException(tikTokAccount, "Nst Browser exception occurred. Probably plan exceeded");
-                } finally {
-                    finishProcessing(playwrightDto.getAutoCloseables());
-                }
-                createdCount++;
-            }
+            tikTokCreationPlaywrightHelper.processSignUp(playwrightDto, tikTokAccount);
+            finishAccountCreation(tikTokAccount);
+        } catch (PlaywrightException e) {
+            log.error(e.getMessage());
+            throw new TikTokCreationException(tikTokAccount, "Unstable proxy connection, couldn't access the element");
+        } catch (NstBrowserException e) {
+            log.error(e.getMessage());
+            throw new TikTokCreationException(tikTokAccount, "Nst Browser exception occurred. Probably plan exceeded");
+        } finally {
+            finishProcessing(playwrightDto.getAutoCloseables());
         }
     }
 
@@ -137,11 +123,11 @@ public class TikTokCreationCommand implements CreationCommand {
         return tikTokAccount.getBio().getName().getFirst() + " " + tikTokAccount.getBio().getName().getLast();
     }
 
-    private boolean canCreateMoreAccounts(int accountsLinked, int createdCount, int createAccountsLimit) {
-        boolean underProxyLimit = accountsLinked < appProps.getAccountsPerProxy();
-        boolean underCreationLimit = createdCount < createAccountsLimit;
-        return underProxyLimit && underCreationLimit;
-    }
+//    private boolean canCreateMoreAccounts(int accountsLinked, int createdCount, int createAccountsLimit) {
+//        boolean underProxyLimit = accountsLinked < appProps.getAccountsPerProxy();
+//        boolean underCreationLimit = createdCount < createAccountsLimit;
+//        return underProxyLimit && underCreationLimit;
+//    }
 
     @Override
     public Platform getPlatform() {

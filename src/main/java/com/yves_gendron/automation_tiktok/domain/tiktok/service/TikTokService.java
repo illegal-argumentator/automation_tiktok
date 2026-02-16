@@ -46,6 +46,10 @@ public class TikTokService implements TikTokQueryPort, TikTokCommandPort {
         return savedAccounts;
     }
 
+    public TikTokAccount save(TikTokAccount account) {
+        return tikTokRepository.save(account);
+    }
+
     public void update(String id, UpdateAccountRequest updateAccountRequest) {
         TikTokAccount tikTokAccount = findById(id);
 
